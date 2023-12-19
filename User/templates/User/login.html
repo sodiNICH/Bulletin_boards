@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Авторизация</h1>
+    <form method="post" enctype="multipart/form" id="login-form">
+        <p>
+            <label for="id_username">Логин</label>
+            <input type="text" name="username" id="id_username" maxlength="100" autofocus="" required="">
+        </p>
+        <p>
+            <label for="id_password">Пароль:</label>
+            <input type="password" name="password" maxlength="50" required="" id="id_password">
+        </p>
+        <button type="submit">
+            Войти
+        </button>
+    </form>
+    <p id="if-not-register">
+        Ещё не зарегистрированы? <a href="/profile/register/">Зарегистрироваться</a>
+    </p>
+    <script>
+        $(document).ready(function () {
+            $('#login-form').submit(function (event) {
+                event.preventDefault();
+                $.ajax({
+                    url: "/profile/login/api/",
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (data) {
+                        console.log(data);
+                        location.reload(true);
+                    },
+                    error: function (error) {
+                        alert('Что то пошло не так');
+                    },
+                });
+            });
+        });
+    </script>
+</body>
+</html>

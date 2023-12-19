@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>все работает</h1>
+    <button type="button" id="exit-button">
+        Выйти
+    </button>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: "/profile/api/",
+                type: "GET",
+                success: function (data) {
+                    $('title').text(data.username);
+                    console.log(data);
+                },
+                error: function (error) {
+                    alert('Что то не так');
+                },
+            });
+        });
+
+        $('#exit-button').on('click', function () {
+            $.ajax({
+                url: '/profile/logout/api/',
+                method: 'POST',
+                success: function (data) {
+                    console.log('Выход выполнен');
+                    location.reload(true);
+                },
+                error: function (error) {
+                    alert('Что то не так');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
