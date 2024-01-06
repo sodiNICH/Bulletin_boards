@@ -7,17 +7,28 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>
-    <h1>все работает</h1>
+    <img src="" alt="" id="user-avatar">
+    <h1 id="username"></h1>
+    <p id="description"></p>
+    <button type="button" id="edit-button">
+        <a href="edit/" target="_blank">
+            Редактировать
+        </a>
+    </button>
     <button type="button" id="exit-button">
         Выйти
     </button>
     <script>
         $(document).ready(function () {
             $.ajax({
-                url: "/profile/api/",
+                url: "/profile/user/api/",
                 type: "GET",
                 success: function (data) {
                     $('title').text(data.username);
+                    console.log(data.avatar);
+                    $("#user-avatar").attr("src", data.avatar);
+                    $("#username").text(data.username);
+                    $("#description").text(data.description);
                     console.log(data);
                 },
                 error: function (error) {

@@ -46,7 +46,9 @@ class TokenAuthMiddleware:
                 return self.update_tokens_and_response(request)
 
             request.META["HTTP_AUTHORIZATION"] = f"Token {access_token}"
-        logger.info("Tokens auth not found")
+            logger.info("Token added to the header")
+        else:
+            logger.info("Tokens auth not found")
         return self.get_response(request)
 
     @staticmethod
@@ -121,7 +123,7 @@ class RedirectMiddleware:
 
     def auth_check(self, request):
         """
-        Function with 
+        Function with
         """
         response = self.get_response(request)
         if (

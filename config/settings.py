@@ -15,6 +15,7 @@ from pathlib import Path
 from datetime import timedelta
 
 from decouple import config
+from django.conf.global_settings import MEDIA_ROOT
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -132,6 +133,12 @@ DATABASES = {
     }
 }
 
+MINIO_ENDPOINT = config("MINIO_ENDPOINT", default="http://localhost:9000/")
+MINIO_ACCESS_KEY = config("MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY = config("MINIO_SECRET_KEY")
+MINIO_BUCKET_NAME = config("MINIO_BUCKET_NAME")
+MINIO_SECURE = config("MINIO_SECURE") # False if http, True if https
+
 REDIS_HOST = config("REDIS_HOST", default="localhost")
 REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
 REDIS_DB = config("REDIS_DB", default=0, cast=int)
@@ -192,6 +199,7 @@ USE_TZ = True
 
 LOGIN_URL = "/profile/login/"
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

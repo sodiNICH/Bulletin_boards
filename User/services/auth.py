@@ -15,9 +15,6 @@ class AuthUser:
     Utility class for authentication-related operations.
     """
 
-    def email_two_auth(self, email):
-        ...
-
     @staticmethod
     def generate_tokens(user):
         """
