@@ -12,9 +12,9 @@ from .services import render_template
 
 router = routers.DefaultRouter()
 router.register(
-    r"user",
+    r"user/api",
     views.UserViewSet,
-    basename="user",
+    basename="user-api",
 )
 
 urlpatterns = [
@@ -34,10 +34,15 @@ urlpatterns = [
         name="login-template",
     ),
     path(
-        "api/",
-        views.ProfileUserAPI.as_view(),
-        name="profile-api",
+        "edit/",
+        render_template.UserProfileEditTemplate.as_view(),
+        name="profile-edit",
     ),
+    # path(
+    #     "user/main/api/",
+    #     views.ProfileUserAPI.as_view({"get": "retrieve", "patch": "update"}),
+    #     name="profile-api",
+    # ),
     path(
         "login/api/",
         views.UserLoginAPI.as_view(),
@@ -49,7 +54,7 @@ urlpatterns = [
         name="logout-api",
     ),
     path(
-        'register/validated/',
+        "register/validated/",
         views.ValidatedDataAPI.as_view(),
         name="validated-register",
     ),

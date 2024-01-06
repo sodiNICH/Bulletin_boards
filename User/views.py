@@ -11,8 +11,8 @@ from django.http import HttpRequest, Http404
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
-from rest_framework import permissions, status, generics
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import permissions, status, mixins, viewsets
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
 from .services.auth import AuthUser
+from .services.edit_profile import EditProfile
 from .validators import ValidatorsObjectRegister
 
 
@@ -29,7 +30,7 @@ Valid_register = ValidatorsObjectRegister()
 logger = logging.getLogger(__name__)
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """
     Viewset for user
     """
@@ -40,17 +41,30 @@ class UserViewSet(ModelViewSet):
         permissions.IsAuthenticated,
         IsOwnerOrReadOnly,
     )
+    mixins = (mixins.UpdateModelMixin,)
+    parser_classes = (MultiPartParser,)
+
+    def get_object(self):
+        return self.request.user
 
     def get_permissions(self):
         permission_classes = {
-            "retrieve": (permissions.IsAuthenticated,),
-            "list": (permissions.IsAdminUser,),
+            "retrieve": (permissions.AllowAny,),
+            "list": (permissions.IsAuthenticated,),
             "create": (permissions.AllowAny,),
+            "update": (permissions.IsAuthenticated,),
+            "patrial_update": (permissions.IsAuthenticated,),
         }
         permissions_list = [
             permission() for permission in permission_classes.get(self.action, [])
         ]
         return permissions_list or super().get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        if self.get_object() == request.user:
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return super().list(request, *args, **kwargs)
 
     def create(self, request: HttpRequest, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -66,22 +80,15 @@ class UserViewSet(ModelViewSet):
         logger.debug(request.COOKIES.get("access"))
         return response
 
-
-class ProfileUserAPI(generics.RetrieveAPIView):
-    """
-    Handle user data
-    """
-
-    permission_classes = (permissions.IsAuthenticated, )
-    serializer_class = UserSerializer  # Замените на ваш сериализатор
-
-    def get_object(self):
-        return self.request.user
-
-    def retrieve(self, request, *args, **kwargs):
+    def partial_update(self, request: HttpRequest, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=True,
+        )
+        return EditProfile().update(request=request, instance=instance, serializer=serializer)
+
 
 class UserLoginAPI(ObtainAuthToken):
     """

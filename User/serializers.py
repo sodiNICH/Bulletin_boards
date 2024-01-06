@@ -27,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
         )
 
+
     def validate(self, attrs):
         """
         Validate username and password using custom validators
@@ -34,7 +35,6 @@ class UserSerializer(serializers.ModelSerializer):
         validator = ValidatorsObjectRegister()
 
         try:
-            validator.validate_field(self.context["request"].POST)
             validator.validate_field(self.context["request"].POST)
         except ValidationError as e:
             logger.debug("Валидация не прошла")
@@ -44,8 +44,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = {
+            "id": instance.id,
             "username": instance.username,
-            "password": instance.id,
+            "avatar": instance.avatar,
+            "description": instance.description,
         }
         return data
 
@@ -54,9 +56,9 @@ class UserSerializer(serializers.ModelSerializer):
         print(validated_data)
         return user
 
-
-class EmailFormSerializer(serializers.Serializer):
-    """
-    Serializer for email
-    """
-    email = serializers.EmailField()
+    def update(self, instance, validated_data):
+        instance.avatar = validated_data.get("avatar", instance.avatar)
+        instance.description = validated_data.get("description", instance.description)
+        instance.username = validated_data.get("username", instance.username)
+        instance.save()
+        return instance

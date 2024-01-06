@@ -2,6 +2,7 @@
 Models related User
 """
 
+from pyexpat import model
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.urls import reverse
@@ -24,6 +25,13 @@ class User(AbstractUser):
     created_at = models.DateTimeField(
         auto_now_add=True,
         null=True,
+    )
+    avatar = models.TextField(
+        default="https://707.su/LpC",
+    )
+    description = models.TextField(
+        max_length=200,
+        default="",
     )
     slug = AutoSlugField(
         unique=True,
