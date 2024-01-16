@@ -2,12 +2,15 @@
 Utility configurations for MinIO
 """
 
-import os
+from io import BytesIO
 import logging
-from datetime import timedelta
+
 from django.conf import settings
+from django.http import HttpResponse
+from django.views import View
 
 from minio import Minio
+from minio.error import S3Error
 
 logger = logging.getLogger(__name__)
 
@@ -18,43 +21,88 @@ class MinIOObject:
     """
 
     @staticmethod
-    def get_minio_client():
+    def minio_client():
         """
         Client minio output
         """
         return Minio(
-            endpoint=settings.MINIO_ENDPOINT,
-            access_key=settings.MINIO_ACCESS_KEY,
-            secret_key=settings.MINIO_SECRET_KEY,
+            endpoint=settings.MINIO_STORAGE_ENDPOINT,
+            access_key=settings.MINIO_STORAGE_ACCESS_KEY,
+            secret_key=settings.MINIO_STORAGE_SECRET_KEY,
             secure=False,
         )
 
-    def upload_to_minio(self, file_path, object_name):
+    @classmethod
+    def upload_to_minio(cls, file_name, file_obj):
         """
         Uploading file to minio
         """
-        minio_client = self.get_minio_client()
-        file_size = os.path.getsize(file_path)
-        print("Клиент minio подключен")
-        with open(file_path, "rb") as file_data:
-            minio_client.put_object(
-                bucket_name=settings.MINIO_BUCKET_NAME,
-                object_name=object_name,
-                data=file_data,
-                length=file_size,
-            )
+        minio_client = cls.minio_client()
+        file_bytes = file_obj.read()
+        file_size = len(file_bytes)
 
-    def get_minio_object_url(self, object_name):
-        """
-        Creating url for file
-        """
-        minio_client = self.get_minio_client()
-        minio_file_url = minio_client.presigned_get_object(
-            bucket_name=settings.MINIO_BUCKET_NAME,
-            object_name=object_name,
-            expires=timedelta(
-                seconds=3600
-            ),  # Время жизни URL в секундах (в данном случае, 1 час)
+        print("Клиент minio подключен")
+        minio_client.put_object(
+            bucket_name=settings.MINIO_STORAGE_MEDIA_BUCKET_NAME,
+            object_name=file_name,
+            data=BytesIO(file_bytes),
+            length=file_size,
         )
-        logger.info(minio_file_url)
-        return minio_file_url
+
+    @classmethod
+    def image_output_via_http_response(cls, object_name):
+        """
+        Output image
+        """
+        try:
+            minio_object = cls.get_object(object_name)
+            image_bytes = cls.read_file(minio_object)
+            response = cls.response(image_bytes)
+            return response
+        except S3Error as e:
+            print(f"Error getting object from Minio: {e}")
+            return None
+
+    @classmethod
+    def get_object(cls, object_name):
+        """
+        Get MinIO file-object
+        """
+        try:
+            minio_client = cls.minio_client()
+            minio_object = minio_client.get_object(
+                settings.MINIO_STORAGE_MEDIA_BUCKET_NAME, object_name
+            )
+            return minio_object
+        except S3Error as e:
+            print(f"Error getting object from Minio: {e}")
+            return None
+
+    @staticmethod
+    def read_file(minio_object):
+        """
+        File reading from minio
+        """
+        if minio_object:
+            image_bytes = minio_object.read()
+            return image_bytes
+        return None
+
+    @staticmethod
+    def response(image_bytes):
+        """
+        Creating and return response
+        """
+        response = HttpResponse(image_bytes, content_type="image/jpeg")
+        return response
+
+
+class ImagePreviewFromMinIO(View):
+    """
+    Endpoint for output image
+    """
+
+    def get(self, request, *args, **kwargs):
+        object_name = kwargs.get("name")
+        response = MinIOObject().image_output_via_http_response(object_name)
+        return response

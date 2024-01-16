@@ -23,6 +23,7 @@ class ValidatorsObjectRegister:
         """
         Validator for password or username
         """
+        logger.debug(post_request_data)
         field_name, field_value = list(post_request_data.items())[0]
         return self.validator_response(field_name, field_value)
 

@@ -34,8 +34,9 @@ class UserSerializer(serializers.ModelSerializer):
         """
         validator = ValidatorsObjectRegister()
 
+        logger.debug(self.context["request"].data)
         try:
-            validator.validate_field(self.context["request"].POST)
+            validator.validate_field(self.context["request"].data)
         except ValidationError as e:
             logger.debug("Валидация не прошла")
             raise serializers.ValidationError({"error": str(e)})

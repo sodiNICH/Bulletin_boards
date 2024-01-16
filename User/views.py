@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
 from rest_framework import permissions, status, mixins, viewsets
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
@@ -42,7 +42,7 @@ class UserViewSet(viewsets.ModelViewSet):
         IsOwnerOrReadOnly,
     )
     mixins = (mixins.UpdateModelMixin,)
-    parser_classes = (MultiPartParser,)
+    parser_classes = (MultiPartParser, JSONParser, )
 
     def get_object(self):
         return self.request.user
@@ -67,13 +67,17 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def create(self, request: HttpRequest, *args, **kwargs):
+        logger.debug("проверка")
+        logger.debug(request.data)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        logger.debug("ошибка?")
         user = serializer.create(
             serializer.validated_data,
         )
         response = Response(
             status=status.HTTP_201_CREATED,
+            data={"Данные валидны"}
         )
 
         Auth_obj.set_cookies(user, response)
@@ -87,7 +91,8 @@ class UserViewSet(viewsets.ModelViewSet):
             data=request.data,
             partial=True,
         )
-        return EditProfile().update(request=request, instance=instance, serializer=serializer)
+        edit_object = EditProfile()
+        return edit_object.update_and_response(request=request, instance=instance, serializer=serializer)
 
 
 class UserLoginAPI(ObtainAuthToken):

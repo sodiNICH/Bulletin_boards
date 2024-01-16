@@ -17,13 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from minio_utils import ImagePreviewFromMinIO
+
 urlpatterns = [
-    path(
-        'admin/',
-        admin.site.urls
-    ),
-    path(
-        'profile/',
-        include('User.urls')
-    ),
+    path("admin/", admin.site.urls),
+    path("profile/", include("User.urls")),
+    path("media/<str:name>/", ImagePreviewFromMinIO.as_view()),
 ]

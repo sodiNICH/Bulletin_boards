@@ -19,22 +19,20 @@
         Выйти
     </button>
     <script>
-        $(document).ready(function () {
-            $.ajax({
-                url: "/profile/user/api/",
-                type: "GET",
-                success: function (data) {
-                    $('title').text(data.username);
-                    console.log(data.avatar);
-                    $("#user-avatar").attr("src", data.avatar);
-                    $("#username").text(data.username);
-                    $("#description").text(data.description);
-                    console.log(data);
-                },
-                error: function (error) {
-                    alert('Что то не так');
-                },
-            });
+        $.ajax({
+            url: "/profile/user/api/",
+            type: "GET",
+            success: function (data) {
+                $('title').text(data.username);
+                console.log(data.avatar);
+                $("#user-avatar").attr("src", `/media/${data.avatar}/`);
+                $("#username").text(data.username);
+                $("#description").text(data.description);
+                console.log(data);
+            },
+            error: function (error) {
+                alert('Что то не так');
+            },
         });
 
         $('#exit-button').on('click', function () {
