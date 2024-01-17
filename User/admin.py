@@ -21,4 +21,9 @@ class CustomUserAdmin(UserAdmin):
     add_form = CustomCreationForm
     form = CustomChangeForm
     model = User
-    list_display = ("id", "username", "password")
+    list_display = (
+        "id",
+        "avatar",
+        "username",
+        "password",
+    )

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
-    <title></title>
     <style>
         .empty-avatar {
             width: 50px; /* Установите нужную ширину */
@@ -24,24 +24,29 @@
     <img src="" alt="" id="user-avatar">
     <h1 id="username"></h1>
     <p id="description"></p>
-
+    <button type="button" id="edit-button">
+        <a href="/profile/edit/" target="_blank">
+            Редактировать
+        </a>
+    </button>
+    <button type="button" id="exit-button">
+        Выйти
+    </button>
     <script>
-        var cookieValue = $.cookie('id_user');
-
-        // Пример вывода значения в консоль
-        console.log(cookieValue);
-        let url = window.location.href;
-        let match = url.match(/\/profile\/(\d+)/)?.[1];
-        console.log(match)
+        var id = $.cookie('user_id');
+        console.log(id);
 
         $(document).ready(function () {
             $.ajax({
-                url: `/profile/user/api/${match}`,
+                url: `/profile/user/api/${id}`,
                 type: "GET",
                 success: function (data) {
                     $('title').text(data.username);
-                    console.log(data.avatar);
-                    $("#user-avatar").attr("src", `/media/${data.avatar}/`);
+                    if (data.avatar.length > 1) {
+                        $("#user-avatar").attr("src", `/media/${data.avatar}/`);
+                    } else {
+                        $("#user-avatar").after("<div class='empty-avatar'>👤</div>");
+                    };
                     $("#username").text(data.username);
                     $("#description").text(data.description);
                     console.log(data);
@@ -49,6 +54,20 @@
                 error: function (error) {
                     alert('Что то не так');
                 },
+            });
+        });
+
+        $('#exit-button').on('click', function () {
+            $.ajax({
+                url: `/profile/logout/api/`,
+                method: 'DELETE',
+                success: function (data) {
+                    console.log('Выход выполнен');
+                    location.href = "/profile/login/";
+                },
+                error: function (error) {
+                    alert('Что то не так');
+                }
             });
         });
     </script>

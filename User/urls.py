@@ -12,17 +12,13 @@ from .services import render_template
 
 router = routers.DefaultRouter()
 router.register(
-    r"user",
+    r"user/api",
     views.UserViewSet,
-    basename="user",
+    basename="user-api",
 )
 
 urlpatterns = [
-    path(
-        "",
-        render_template.UserProfileTemplate.as_view(),
-        name="profile-template",
-    ),
+    # Template endpoints
     path(
         "register/",
         render_template.UserRegisterTemplate.as_view(),
@@ -34,9 +30,19 @@ urlpatterns = [
         name="login-template",
     ),
     path(
-        "api/",
-        views.ProfileUserAPI.as_view(),
-        name="profile-api",
+        "edit/",
+        render_template.UserProfileEditTemplate.as_view(),
+        name="profile-edit",
+    ),
+    path(
+        "<int:pk>/",
+        render_template.UserProfileTemplate.as_view(),
+        name="profile-template",
+    ),
+    # API endpoints
+    path(
+        "",
+        include(router.urls),
     ),
     path(
         "login/api/",
@@ -49,12 +55,8 @@ urlpatterns = [
         name="logout-api",
     ),
     path(
-        'register/validated/',
+        "register/validated/",
         views.ValidatedDataAPI.as_view(),
         name="validated-register",
-    ),
-    path(
-        "",
-        include(router.urls),
     ),
 ]

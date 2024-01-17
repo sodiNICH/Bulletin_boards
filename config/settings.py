@@ -15,6 +15,7 @@ from pathlib import Path
 from datetime import timedelta
 
 from decouple import config
+from django.conf.urls import handler404
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     # 'django_extensions',
+    "minio_storage",
     "User",
 ]
 
@@ -91,8 +93,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
     "User.middleware.TokenAuthMiddleware",
     "User.middleware.RedirectMiddleware",
+    "User.middleware.CheckCookiesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -102,6 +106,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             f"{BASE_DIR}/User/templates/",
+            f"{BASE_DIR}/templates/",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -132,6 +137,13 @@ DATABASES = {
     }
 }
 
+DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
+MINIO_STORAGE_ENDPOINT = config("MINIO_ENDPOINT", default="http://localhost:9000/")
+MINIO_STORAGE_ACCESS_KEY = config("MINIO_ACCESS_KEY")
+MINIO_STORAGE_SECRET_KEY = config("MINIO_SECRET_KEY")
+MINIO_STORAGE_USE_HTTPS = False
+MINIO_STORAGE_MEDIA_BUCKET_NAME = config("MINIO_BUCKET_NAME")
+
 REDIS_HOST = config("REDIS_HOST", default="localhost")
 REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
 REDIS_DB = config("REDIS_DB", default=0, cast=int)
@@ -141,7 +153,7 @@ CACHES = {
         "BACKEND": config(
             "CACHE_BACKEND", default="django.core.cache.backends.locmem.LocMemCache"
         ),
-        "LOCATION":f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
         "OPTIONS": {
             "CLIENT_CLASS": config(
                 "CACHE_CLIENT_CLASS",
@@ -155,7 +167,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "itproger20@gmail.com" # в будущем создать Workspace mail и добавить свой домен
+EMAIL_HOST_USER = (
+    "itproger20@gmail.com"  # в будущем создать Workspace mail и добавить свой домен
+)
 EMAIL_HOST_PASSWORD = "qawsedQ1"
 
 AUTH_USER_MODEL = "User.User"
@@ -192,6 +206,10 @@ USE_TZ = True
 
 LOGIN_URL = "/profile/login/"
 
+handler404 = "config.handler_error.handler_404"
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
+MEDIA_URL = "/media/"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

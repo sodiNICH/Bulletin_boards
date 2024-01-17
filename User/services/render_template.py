@@ -5,19 +5,18 @@ Service for rendering HTML-templates
 import logging
 
 from rest_framework.renderers import TemplateHTMLRenderer
-from rest_framework.decorators import renderer_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import renderer_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.http import HttpRequest
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
 
 
-@renderer_classes([TemplateHTMLRenderer])
 class UserRegisterTemplate(APIView):
     """
     Register template renderer
@@ -25,7 +24,7 @@ class UserRegisterTemplate(APIView):
 
     def get(self, request: HttpRequest, *args, **kwargs):
         if request.user.is_authenticated:
-            return redirect(reverse_lazy("profile-template"))
+            return redirect(reverse("profile-template", kwargs={"pk": request.user.id}))
         path_template = "User/register.html/"
         return Response(template_name=path_template)
 
@@ -38,20 +37,32 @@ class UserLoginTemplate(APIView):
 
     def get(self, request: HttpRequest, *args, **kwargs):
         if request.user.is_authenticated:
-            return redirect(reverse_lazy("profile-template"))
+            return redirect(reverse("profile-template", kwargs={"pk": request.user.id}))
         path_template = "User/login.html/"
         return Response(template_name=path_template)
 
 
 @renderer_classes([TemplateHTMLRenderer])
-class UserProfileTemplate(APIView):
+class UserProfileEditTemplate(APIView):
     """
-    User profile template renderer
+    User profile edit template renderer
     """
 
     permission_classes = (IsAuthenticated,)
 
     def get(self, request: HttpRequest, *args, **kwargs):
         logger.debug(request.user.username)
-        path_template = "User/profile.html/"
+        path_template = "User/edit_profile.html/"
+        return Response(template_name=path_template)
+
+
+@renderer_classes([TemplateHTMLRenderer])
+class UserProfileTemplate(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        if kwargs.get("pk") == request.user.id:
+            path_template = "User/auth_profile.html/"
+        else:
+            path_template = "User/profile.html/"
         return Response(template_name=path_template)

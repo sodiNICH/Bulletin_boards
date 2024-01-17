@@ -119,14 +119,17 @@
                         form['password'] = field.value;
                     };
                 });
+                console.log(form)
 
                 $.ajax({
-                    url: "/profile/user/",
+                    url: "/profile/user/api/",
                     type: "POST",
-                    data: form,
+                    dataType: 'json',
+                    data: JSON.stringify(form),
+                    contentType: 'application/json',
                     success: function (data) {
                         console.log('Все норм');
-                        location.reload(true);
+                        window.location.href = `/profile/${data.id}/`
                     },
                     error: function (xhr) {
                         let error = xhr.responseJSON;

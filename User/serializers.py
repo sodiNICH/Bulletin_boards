@@ -8,7 +8,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 
-from .validators import ValidatorsObjectRegister
+from .validators import ValidatorForRegistration
 
 
 User = get_user_model()
@@ -27,25 +27,29 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
         )
 
+
     def validate(self, attrs):
         """
         Validate username and password using custom validators
         """
-        validator = ValidatorsObjectRegister()
-
-        try:
-            validator.validate_field(self.context["request"].POST)
-            validator.validate_field(self.context["request"].POST)
-        except ValidationError as e:
-            logger.debug("Валидация не прошла")
-            raise serializers.ValidationError({"error": str(e)})
-        logger.debug("Валидация прошла успешно")
+        request = self.context["request"]
+        if request.method == "POST":
+            try:
+                fields = request.data
+                list_fields = list(fields.items())
+                for field in list_fields:
+                    ValidatorForRegistration.validate_field(field)
+            except ValidationError as e:
+                logger.info("Валидация не прошла")
+                raise serializers.ValidationError({"error": str(e)})
+            logger.info("Валидация прошла успешно")
         return attrs
 
     def to_representation(self, instance):
         data = {
             "username": instance.username,
-            "password": instance.id,
+            "avatar": instance.avatar,
+            "description": instance.description,
         }
         return data
 
@@ -54,9 +58,9 @@ class UserSerializer(serializers.ModelSerializer):
         print(validated_data)
         return user
 
-
-class EmailFormSerializer(serializers.Serializer):
-    """
-    Serializer for email
-    """
-    email = serializers.EmailField()
+    def update(self, instance, validated_data):
+        instance.avatar = validated_data.get("avatar", instance.avatar)
+        instance.description = validated_data.get("description", instance.description)
+        instance.username = validated_data.get("username", instance.username)
+        instance.save()
+        return instance

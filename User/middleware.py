@@ -4,6 +4,7 @@ Module with custom middleware related User
 
 import logging
 from math import trunc
+from typing import Any
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -46,7 +47,9 @@ class TokenAuthMiddleware:
                 return self.update_tokens_and_response(request)
 
             request.META["HTTP_AUTHORIZATION"] = f"Token {access_token}"
-        logger.info("Tokens auth not found")
+            logger.info("Token added to the header")
+        else:
+            logger.info("Tokens auth not found")
         return self.get_response(request)
 
     @staticmethod
@@ -107,6 +110,29 @@ class TokenAuthMiddleware:
         return response
 
 
+class CheckCookiesMiddleware:
+    """
+    Middleware for cheking cookies
+    """
+    def __init__(self, get_response) -> None:
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> Any:
+        response = self.get_response(request)
+        if access_token := request.COOKIES.get("access"):
+            self.check_user_id(request, access_token, response)
+        else:
+            response.set_cookie("user_id")
+        return response
+
+    def check_user_id(self, request ,access_token, response):
+        """
+        Check user id in cookies
+        """
+        if not request.COOKIES.get("user_id"):
+            user_id = decode(access_token, options={"verify_signature": False}).get('user_id')
+            response.set_cookie("user_id", user_id)
+
 
 class RedirectMiddleware:
     """
@@ -121,7 +147,7 @@ class RedirectMiddleware:
 
     def auth_check(self, request):
         """
-        Function with 
+        Function with
         """
         response = self.get_response(request)
         if (

@@ -10,13 +10,10 @@ from django.http import HttpResponse
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-class AuthUser:
+class OperationForUserAuth:
     """
     Utility class for authentication-related operations.
     """
-
-    def email_two_auth(self, email):
-        ...
 
     @staticmethod
     def generate_tokens(user):
@@ -31,22 +28,26 @@ class AuthUser:
             "access": access_token,
         }
 
-    def set_cookies(self, user: QuerySet, response: HttpResponse):
+    @classmethod
+    def set_cookies(cls, user: QuerySet, response: HttpResponse):
         """
         Adding tokens to the response cookie
         """
-        tokens = self.generate_tokens(user)
+        tokens = cls.generate_tokens(user)
+        # Adding tokens to cookies
         response.set_cookie(
             "refresh", str(tokens["refresh"]), httponly=True, samesite="Strict"
         )
         response.set_cookie(
             "access", tokens["access"], httponly=True, samesite="Strict"
         )
-        logger.debug('Токена созданы')
+        logger.debug('Токена созданы и добавлены')
 
-    def delete_cookie(self, response):
+    @classmethod
+    def delete_cookie(cls, response):
         '''
         Deleting tokens from cookies
         '''
         response.delete_cookie("refresh")
         response.delete_cookie("access")
+        response.delete_cookie("user_id")
