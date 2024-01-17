@@ -2,7 +2,6 @@
 Models related User
 """
 
-from pyexpat import model
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.urls import reverse
@@ -27,7 +26,7 @@ class User(AbstractUser):
         null=True,
     )
     avatar = models.TextField(
-        default="https://707.su/LpC",
+        default="",
     )
     description = models.TextField(
         max_length=200,
@@ -39,15 +38,8 @@ class User(AbstractUser):
         null=True,
     )
 
-    def save(self, *args, **kwargs):
-        self.slug = f'{self.username.lower().replace(" ", "-")}-{self.pk}'
-        return super().save(*args, **kwargs)
-
     def get_absolute_url(self):
         return reverse("user", kwargs={"slug": self.slug})
-
-    def __str__(self):
-        return self.slug
 
     class Meta:
         ordering = ('created_at', )

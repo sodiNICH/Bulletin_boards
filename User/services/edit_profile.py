@@ -2,56 +2,66 @@
 Service for edit and update user
 """
 
-import logging
+from logging import Logger
 
 from rest_framework import status
 from rest_framework.response import Response
 
-from minio_utils import MinIOObject
+from minio import Minio
 
 
-minio = MinIOObject()
-logger = logging.getLogger(__name__)
-
-
-class EditProfile:
+class UserProfileEditor:
     """
-    Class with methods for edit user
+    Class with methods for editing user profile
     """
 
-    @classmethod
-    def update_and_response(cls, request, instance, serializer):
+    def __init__(self, minio_client: Minio, logger: Logger):
+        self.minio_client = minio_client
+        self.logger = logger
+
+    def update_profile_and_get_response(self, request, instance, serializer):
         """
-        Method for update data user
+        Updating profile and get response
         """
         uploaded_file = request.FILES.get("avatar")
-        file_name = cls.file_saving_and_file_name(uploaded_file)
-        cls.update_instance(request, serializer, instance, file_name)
-        return Response(
-            data={
-                "message": "Данные обновлены успешно",
-            },
-            status=status.HTTP_200_OK,
-        )
+        self._delete_previous_file(instance.avatar)
+        file_name = self._save_file_and_get_name(uploaded_file, instance.pk)
+        self._update_instance(request, serializer, instance, file_name)
+        return self._success_response()
 
-    @staticmethod
-    def file_saving_and_file_name(file):
+    def _delete_previous_file(self, file_name):
         """
-        Method for saving file in MinIO
+        Deleting a previous file
         """
-        file_name = file.name
-        minio.upload_to_minio(file_name, file)
+        self.minio_client.delete_from_minio(file_name)
+        self.logger.info("File delete with MinIO")
 
-        logger.debug("Сохранение в MinIO прошло успешно")
-        return file_name
+    def _save_file_and_get_name(self, file_obj, pk):
+        """
+        Method for saving file in MinIO and getting the file name
+        """
+        object_name = f"{pk}-{file_obj.name}"
+        self.minio_client.upload_to_minio(file_obj, object_name)
+        self.logger.info("File saved in MinIO successfully")
+        return file_obj.name
 
-    @staticmethod
-    def update_instance(request, serializer, instance, name):
+    def _update_instance(self, request, serializer, instance, name):
         """
-        Updating instance
+        Updating user instance
         """
-        request.data["avatar"] = name
+        request.data["avatar"] = f"{instance.pk}-{name}"
         serializer.is_valid(raise_exception=True)
         serializer.update(instance, request.data)
         serializer.save()
-        logger.debug("Обновление данных пользователя прошло успешно")
+        self.logger.info("User data updated successfully")
+
+    def _success_response(self):
+        """
+        Return a success response
+        """
+        return Response(
+            data={
+                "message": "User data updated successfully",
+            },
+            status=status.HTTP_200_OK,
+        )

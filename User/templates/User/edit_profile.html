@@ -5,25 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 </head>
 <body>
     <form method="patch" enctype="multipart/form-data" id="profile-edit-form">
-        <input type="file" id="avatarInput" name="avatar">
-        <input type="text" id="username" name="username">
-        <input type="text" id="description" name="description">
-        <input type="submit" value="Отправить">
+        <p>
+            <label for="avatarInput">Выбрать изображение:</label>
+            <input type="file" id="avatarInput" name="avatar">
+        </p>
+        <p>
+            <label for="username">Имя пользователя:</label>
+            <input type="text" id="username" name="username">
+        </p>
+        <span id="warning-valid-username"></span>
+        <p>
+            <label for="description">Описание:</label>
+            <input type="text" id="description" name="description">
+        </p>
+        <button type="submit" id="edit_user_button">
+            Отправить
+        </button>
     </form>
 
     <script>
-        var id_user;
+        var id = $.cookie('user_id');
+        console.log(id);
+
         $(document).ready(function () {
             $.ajax({
-                url: "/profile/user/api/",
+                url: `/profile/user/api/${id}/`,
                 type: "GET",
                 success: function (response) {
                     console.log(response);
-                    id_user = response.id;
-                    console.log(id_user);
                     $("title").text(response.username);
                     $("#username").val(response.username);
                     $("#description").val(response.description);
@@ -35,9 +48,9 @@
             $("#profile-edit-form").submit(function(event) {
                 event.preventDefault();
                 var formData = new FormData(this);
-                console.log(id_user);
+                console.log(id);
                 $.ajax({
-                    url: `/profile/user/api/${id_user}/`,
+                    url: `/profile/user/api/${id}/`,
                     type: 'PATCH',
                     dataType: 'json',
                     data: formData,
@@ -45,7 +58,7 @@
                     contentType: false,
                     success: function(response) {
                         console.log(response);
-                        location.href = "/profile/"
+                        location.href = `/profile/${id}`;
                     },
                     error: function(error) {
                         alert("Что то пошло не так")

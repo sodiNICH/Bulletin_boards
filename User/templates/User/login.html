@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 </head>
 <body>
     <h1>Авторизация</h1>
@@ -34,7 +35,7 @@
                     data: $(this).serialize(),
                     success: function (data) {
                         console.log(data);
-                        location.reload(true);
+                        location.href = `/profile/${data.id}/`;
                     },
                     error: function (error) {
                         alert('Что то пошло не так');

@@ -15,7 +15,7 @@ from pathlib import Path
 from datetime import timedelta
 
 from decouple import config
-from django.conf.global_settings import MEDIA_URL
+from django.conf.urls import handler404
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -93,8 +93,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
     "User.middleware.TokenAuthMiddleware",
     "User.middleware.RedirectMiddleware",
+    "User.middleware.CheckCookiesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -104,6 +106,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             f"{BASE_DIR}/User/templates/",
+            f"{BASE_DIR}/templates/",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -202,6 +205,8 @@ USE_I18N = True
 USE_TZ = True
 
 LOGIN_URL = "/profile/login/"
+
+handler404 = "config.handler_error.handler_404"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
 MEDIA_URL = "/media/"

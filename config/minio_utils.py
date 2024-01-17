@@ -6,7 +6,7 @@ from io import BytesIO
 import logging
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.views import View
 
 from minio import Minio
@@ -15,7 +15,7 @@ from minio.error import S3Error
 logger = logging.getLogger(__name__)
 
 
-class MinIOObject:
+class MinIOFileManager:
     """
     Basic operations with MinIo
     """
@@ -33,7 +33,7 @@ class MinIOObject:
         )
 
     @classmethod
-    def upload_to_minio(cls, file_name, file_obj):
+    def upload_to_minio(cls, file_obj, file_name):
         """
         Uploading file to minio
         """
@@ -41,7 +41,6 @@ class MinIOObject:
         file_bytes = file_obj.read()
         file_size = len(file_bytes)
 
-        print("Клиент minio подключен")
         minio_client.put_object(
             bucket_name=settings.MINIO_STORAGE_MEDIA_BUCKET_NAME,
             object_name=file_name,
@@ -50,46 +49,52 @@ class MinIOObject:
         )
 
     @classmethod
+    def delete_from_minio(cls, object_name):
+        """
+        Deleting file from minio
+        """
+        try:
+            minio_client = cls.minio_client()
+            minio_client.remove_object(
+                settings.MINIO_STORAGE_MEDIA_BUCKET_NAME, object_name
+            )
+        except (S3Error, ValueError):
+            pass
+
+    @classmethod
     def image_output_via_http_response(cls, object_name):
         """
         Output image
         """
         try:
-            minio_object = cls.get_object(object_name)
-            image_bytes = cls.read_file(minio_object)
-            response = cls.response(image_bytes)
+            minio_object = cls._get_object(object_name)
+            image_bytes = cls._read_file(minio_object)
+            response = cls._response(image_bytes)
             return response
-        except S3Error as e:
-            print(f"Error getting object from Minio: {e}")
-            return None
+        except S3Error:
+            return HttpResponseNotFound()
 
     @classmethod
-    def get_object(cls, object_name):
+    def _get_object(cls, object_name):
         """
         Get MinIO file-object
         """
-        try:
-            minio_client = cls.minio_client()
-            minio_object = minio_client.get_object(
-                settings.MINIO_STORAGE_MEDIA_BUCKET_NAME, object_name
-            )
-            return minio_object
-        except S3Error as e:
-            print(f"Error getting object from Minio: {e}")
-            return None
+        minio_client = cls.minio_client()
+        minio_object = minio_client.get_object(
+            settings.MINIO_STORAGE_MEDIA_BUCKET_NAME, object_name
+        )
+        return minio_object
 
     @staticmethod
-    def read_file(minio_object):
+    def _read_file(minio_object):
         """
         File reading from minio
         """
-        if minio_object:
-            image_bytes = minio_object.read()
-            return image_bytes
-        return None
+        image_bytes = minio_object.read()
+        return image_bytes
 
     @staticmethod
-    def response(image_bytes):
+    def _response(image_bytes):
         """
         Creating and return response
         """
@@ -104,5 +109,8 @@ class ImagePreviewFromMinIO(View):
 
     def get(self, request, *args, **kwargs):
         object_name = kwargs.get("name")
-        response = MinIOObject().image_output_via_http_response(object_name)
-        return response
+        try:
+            response = MinIOFileManager.image_output_via_http_response(object_name)
+            return response
+        except FileNotFoundError:
+            return HttpResponseNotFound("File not found")

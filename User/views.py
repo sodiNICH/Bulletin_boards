@@ -5,28 +5,27 @@ All views for everything related to the User
 import logging
 
 from django.contrib.auth import get_user_model
+from django.forms import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpRequest, Http404
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.http import HttpRequest
 
 from rest_framework import permissions, status, mixins, viewsets
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
+from rest_framework.generics import DestroyAPIView
 
+from config.minio_utils import MinIOFileManager
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
-from .services.auth import AuthUser
-from .services.edit_profile import EditProfile
-from .validators import ValidatorsObjectRegister
+from .services.auth import OperationForUserAuth
+from .services.edit_profile import UserProfileEditor
+from .validators import ValidatorForRegistration
 
 
 User = get_user_model()
-Auth_obj = AuthUser()
-Valid_register = ValidatorsObjectRegister()
 logger = logging.getLogger(__name__)
 
 
@@ -42,15 +41,15 @@ class UserViewSet(viewsets.ModelViewSet):
         IsOwnerOrReadOnly,
     )
     mixins = (mixins.UpdateModelMixin,)
-    parser_classes = (MultiPartParser, JSONParser, )
-
-    def get_object(self):
-        return self.request.user
+    parser_classes = (
+        MultiPartParser,
+        JSONParser,
+    )
 
     def get_permissions(self):
         permission_classes = {
             "retrieve": (permissions.AllowAny,),
-            "list": (permissions.IsAuthenticated,),
+            "list": (permissions.IsAdminUser,),
             "create": (permissions.AllowAny,),
             "update": (permissions.IsAuthenticated,),
             "patrial_update": (permissions.IsAuthenticated,),
@@ -60,39 +59,37 @@ class UserViewSet(viewsets.ModelViewSet):
         ]
         return permissions_list or super().get_permissions()
 
-    def list(self, request, *args, **kwargs):
-        if self.get_object() == request.user:
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return super().list(request, *args, **kwargs)
-
     def create(self, request: HttpRequest, *args, **kwargs):
-        logger.debug("проверка")
-        logger.debug(request.data)
+        # Creating new user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        logger.debug("ошибка?")
         user = serializer.create(
             serializer.validated_data,
         )
+        # Creating http response
         response = Response(
             status=status.HTTP_201_CREATED,
-            data={"Данные валидны"}
+            data={
+                "message": "Data valid",
+                "id": user.id,
+            },
         )
-
-        Auth_obj.set_cookies(user, response)
+        # Adding the required tokens to cookies
+        OperationForUserAuth.set_cookies(user, response)
         logger.debug(request.COOKIES.get("access"))
         return response
 
     def partial_update(self, request: HttpRequest, *args, **kwargs):
-        instance = self.get_object()
+        instance = request.user
         serializer = self.get_serializer(
             instance,
             data=request.data,
             partial=True,
         )
-        edit_object = EditProfile()
-        return edit_object.update_and_response(request=request, instance=instance, serializer=serializer)
+        edit_user_object = UserProfileEditor(MinIOFileManager, logger)
+        return edit_user_object.update_profile_and_get_response(
+            request=request, instance=instance, serializer=serializer
+        )
 
 
 class UserLoginAPI(ObtainAuthToken):
@@ -113,35 +110,35 @@ class UserLoginAPI(ObtainAuthToken):
             logger.debug(user)
             response = Response(
                 status=status.HTTP_200_OK,
+                data={
+                    "message": "Authorization was successful",
+                    "id": user.id,
+                },
             )
-            Auth_obj.set_cookies(user, response)
-            logger.debug("Токен был создан")
+            OperationForUserAuth.set_cookies(user, response)
+            logger.debug("Token created")
             return response
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class UserLogoutAPI(APIView):
+class UserLogoutAPI(DestroyAPIView):
     """
     Endpoint for Logout
     """
 
     permission_classes = (permissions.IsAuthenticated,)
 
-    def dispatch(self, request: HttpRequest, *args, **kwargs):
-        if not request.COOKIES.get("access"):
-            raise Http404("Exit is impossible")
-        return super().dispatch(request, *args, **kwargs)
-
-    def post(self, request: HttpRequest, *args, **kwargs):
+    def delete(self, request: HttpRequest, *args, **kwargs):
         """
         Handle user logout
         """
         logger.debug(request.user)
-        response = redirect(
-            reverse_lazy("register-template"),
+        response = Response(
+            status=status.HTTP_204_NO_CONTENT,
+            data="Account logout executed",
         )
-        Auth_obj.delete_cookie(response)
+        OperationForUserAuth.delete_cookie(response)
         return response
 
 
@@ -151,12 +148,16 @@ class ValidatedDataAPI(APIView):
     """
 
     def post(self, request: HttpRequest, *args, **kwargs):
-        return Valid_register.validate_field(request.POST)
-
-    def handle_unknown_field(self):
-        return Response(
-            data={
-                "error": "Unknown field",
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        try:
+            ValidatorForRegistration.validate_field(list(request.POST.items())[0])
+            return Response(
+                data={"message": "Данные введенны корректно"},
+                status=status.HTTP_200_OK,
+            )
+        except ValidationError as e:
+            return Response(
+                data={
+                    "error": str(e),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )

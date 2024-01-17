@@ -8,7 +8,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 
-from .validators import ValidatorsObjectRegister
+from .validators import ValidatorForRegistration
 
 
 User = get_user_model()
@@ -32,20 +32,21 @@ class UserSerializer(serializers.ModelSerializer):
         """
         Validate username and password using custom validators
         """
-        validator = ValidatorsObjectRegister()
-
-        logger.debug(self.context["request"].data)
-        try:
-            validator.validate_field(self.context["request"].data)
-        except ValidationError as e:
-            logger.debug("Валидация не прошла")
-            raise serializers.ValidationError({"error": str(e)})
-        logger.debug("Валидация прошла успешно")
+        request = self.context["request"]
+        if request.method == "POST":
+            try:
+                fields = request.data
+                list_fields = list(fields.items())
+                for field in list_fields:
+                    ValidatorForRegistration.validate_field(field)
+            except ValidationError as e:
+                logger.info("Валидация не прошла")
+                raise serializers.ValidationError({"error": str(e)})
+            logger.info("Валидация прошла успешно")
         return attrs
 
     def to_representation(self, instance):
         data = {
-            "id": instance.id,
             "username": instance.username,
             "avatar": instance.avatar,
             "description": instance.description,

@@ -7,56 +7,40 @@ import logging
 from django.forms import ValidationError
 from django.contrib.auth import get_user_model
 
-from rest_framework.response import Response
-from rest_framework import status
-
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class ValidatorsObjectRegister:
+class ValidatorForRegistration:
     """
     Object for custom validators
     """
 
-    def validate_field(self, post_request_data: dict):
+    @classmethod
+    def validate_field(cls, post_request_data: dict):
         """
         Validator for password or username
         """
-        logger.debug(post_request_data)
-        field_name, field_value = list(post_request_data.items())[0]
-        return self.validator_response(field_name, field_value)
+        field_name, field_value = post_request_data
+        return cls._validator_response(field_name, field_value)
 
-    def validator_response(self, field_name, field_value):
+    @classmethod
+    def _validator_response(cls, field_name, field_value):
         """
         Return a validator response
         """
-        try:
-            match field_name:
-                case "password":
-                    self.password(field_value)
-                case "username":
-                    self.username(field_value)
-                case "email":
-                    self.email(field_value)
-
-            return Response(
-                data={"message": "Данные введенны корректно"},
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as e:
-            return Response(
-                data={
-                    "error": str(e),
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        match field_name:
+            case "password":
+                cls._password(field_value)
+            case "username":
+                cls._username(field_value)
 
     @staticmethod
-    def password(password):
+    def _password(password):
         """
         Method with checking password
         """
+        print('паролооапоапв')
         if not password:
             raise ValidationError("Пароль не может быть пустым")
 
@@ -85,14 +69,16 @@ class ValidatorsObjectRegister:
         return True
 
     @staticmethod
-    def username(username):
+    def _username(username):
         """
         Method with checking password
         """
+        print('юзеррмане')
         if not username:
             raise ValidationError("Логин не может быть пустым")
 
         if len(username) < 4:
+            print(" ало меньше 4")
             raise ValidationError("Логин должен содержать не менее 4 символов")
 
         if not re.match(r"^\w+$", username):
@@ -104,11 +90,3 @@ class ValidatorsObjectRegister:
             raise ValidationError("Этот логин уже существует")
 
         return True
-
-    @staticmethod
-    def email(email):
-        """
-        Method with checking email
-        """
-        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            raise ValidationError("Неверный формат для email")
