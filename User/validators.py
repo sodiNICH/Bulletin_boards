@@ -6,6 +6,12 @@ import logging
 
 from django.forms import ValidationError
 from django.contrib.auth import get_user_model
+from django.http import HttpRequest
+
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -40,7 +46,6 @@ class ValidatorForRegistration:
         """
         Method with checking password
         """
-        print('паролооапоапв')
         if not password:
             raise ValidationError("Пароль не может быть пустым")
 
@@ -73,7 +78,6 @@ class ValidatorForRegistration:
         """
         Method with checking password
         """
-        print('юзеррмане')
         if not username:
             raise ValidationError("Логин не может быть пустым")
 
@@ -90,3 +94,24 @@ class ValidatorForRegistration:
             raise ValidationError("Этот логин уже существует")
 
         return True
+
+
+class ValidatedDataAPI(APIView):
+    """
+    View for validated data
+    """
+
+    def post(self, request: HttpRequest, *args, **kwargs):
+        try:
+            ValidatorForRegistration.validate_field(*request.POST.items())
+            return Response(
+                data={"message": "Данные введенны корректно"},
+                status=HTTP_200_OK,
+            )
+        except ValidationError as e:
+            return Response(
+                data={
+                    "error": str(e),
+                },
+                status=HTTP_400_BAD_REQUEST,
+            )

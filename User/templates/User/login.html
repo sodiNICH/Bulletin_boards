@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 </head>
+
 <body>
     <h1>Авторизация</h1>
     <form method="post" enctype="multipart/form" id="login-form">
@@ -25,24 +27,7 @@
     <p id="if-not-register">
         Ещё не зарегистрированы? <a href="/profile/register/">Зарегистрироваться</a>
     </p>
-    <script>
-        $(document).ready(function () {
-            $('#login-form').submit(function (event) {
-                event.preventDefault();
-                $.ajax({
-                    url: "/profile/login/api/",
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function (data) {
-                        console.log(data);
-                        location.href = `/profile/${data.id}/`;
-                    },
-                    error: function (error) {
-                        alert('Что то пошло не так');
-                    },
-                });
-            });
-        });
-    </script>
+    <script src="/static/js/login.js"></script>
 </body>
+
 </html>

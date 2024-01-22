@@ -21,6 +21,7 @@ from .minio_utils import ImagePreviewFromMinIO
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", include("advertisements.urls")),
     path("profile/", include("User.urls")),
     path("media/<str:name>/", ImagePreviewFromMinIO.as_view()),
 ]

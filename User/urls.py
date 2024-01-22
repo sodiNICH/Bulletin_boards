@@ -7,6 +7,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from . import views
+from .validators import ValidatedDataAPI
 from .services import render_template
 
 
@@ -54,9 +55,10 @@ urlpatterns = [
         views.UserLogoutAPI.as_view(),
         name="logout-api",
     ),
+    # Endpoint for validating data
     path(
         "register/validated/",
-        views.ValidatedDataAPI.as_view(),
+        ValidatedDataAPI.as_view(),
         name="validated-register",
     ),
 ]

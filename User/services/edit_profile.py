@@ -49,7 +49,7 @@ class UserProfileEditor:
         """
         Updating user instance
         """
-        request.data["avatar"] = f"{instance.pk}-{name}"
+        request.data["avatar"] = f"/media/{instance.pk}-{name}/"
         serializer.is_valid(raise_exception=True)
         serializer.update(instance, request.data)
         serializer.save()

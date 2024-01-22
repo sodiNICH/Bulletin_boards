@@ -5,7 +5,6 @@ All views for everything related to the User
 import logging
 
 from django.contrib.auth import get_user_model
-from django.forms import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest
@@ -14,7 +13,6 @@ from rest_framework import permissions, status, mixins, viewsets
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.views import APIView
 from rest_framework.generics import DestroyAPIView
 
 from config.minio_utils import MinIOFileManager
@@ -22,7 +20,6 @@ from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
 from .services.auth import OperationForUserAuth
 from .services.edit_profile import UserProfileEditor
-from .validators import ValidatorForRegistration
 
 
 User = get_user_model()
@@ -140,24 +137,3 @@ class UserLogoutAPI(DestroyAPIView):
         )
         OperationForUserAuth.delete_cookie(response)
         return response
-
-
-class ValidatedDataAPI(APIView):
-    """
-    View for validated data
-    """
-
-    def post(self, request: HttpRequest, *args, **kwargs):
-        try:
-            ValidatorForRegistration.validate_field(list(request.POST.items())[0])
-            return Response(
-                data={"message": "Данные введенны корректно"},
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as e:
-            return Response(
-                data={
-                    "error": str(e),
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
