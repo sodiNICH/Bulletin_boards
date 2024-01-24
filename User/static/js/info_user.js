@@ -1,4 +1,6 @@
-var id = $.cookie('user_id');
+var url = location.href;
+var match = url.match(/\/profile\/(\d+)\/$/);
+var id = match[1];
 console.log(id);
 
 $(document).ready(function () {
@@ -7,11 +9,9 @@ $(document).ready(function () {
         type: "GET",
         success: function (data) {
             $('title').text(data.username);
-            $("#username").text(data.username);
-            $("#description").text(data.description);
             var newHTML = '<img src="" alt="" id="user-avatar">' +
-                '<h1 id="username">dsfdsf</h1>' +
-                '<p id="description"></p>';
+                `<h1 id="username">${data.username}</h1>` +
+                `<p id="description">${data.description}</p>`;
 
             $('#info-user').prepend(newHTML);
 

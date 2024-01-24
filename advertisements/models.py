@@ -21,6 +21,9 @@ class Advertisements(models.Model):
         verbose_name="Title",
         null=False,
     )
+    condition = models.CharField(
+        null=True,
+    )
     description = models.TextField(
         max_length=5000,
         null=False,

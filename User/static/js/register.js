@@ -33,13 +33,18 @@ $(document).ready(function () {
             success: function(response) {
                 console.log(response);
                 $("#warning-valid-username").empty();
+                $("#id_username").attr("class", "form-control valid_form")
+                setTimeout(function () {
+                    $("#id_username").attr("class", "form-control");
+                }, 2000);
                 disabled.username = true;
                 disabledCheck(disabled);
             },
             error: function(xhr) {
                 var errors_json = xhr.responseJSON;
                 $("#warning-valid-username").empty();
-                $("#warning-valid-username").append(`<strong>${errors_json.error.slice(2, -2)}</strong>`);
+                $("#warning-valid-username").append(`<strong style="color: #db5555">${errors_json.error.slice(2, -2)}</strong>`);
+                $("#id_username").attr("class", "form-control warning-form")
                 disabled.username = false;
                 disabledCheck(disabled);
             }
@@ -62,13 +67,18 @@ $(document).ready(function () {
             success: function(response) {
                 console.log(response);
                 $("#warning-valid-password").empty();
+                $("#id_password1").attr("class", "form-control valid_form")
+                setTimeout(function () {
+                    $("#id_password1").attr("class", "form-control");
+                }, 2000);
                 disabled.password = true;
                 disabledCheck(disabled);
             },
             error: function(xhr) {
                 var errors_json = xhr.responseJSON;
                 $("#warning-valid-password").empty();
-                $("#warning-valid-password").append(`<strong>${errors_json.error.slice(2, -2)}</strong>`);
+                $("#warning-valid-password").append(`<strong style="color: #db5555">${errors_json.error.slice(2, -2)}</strong>`);
+                $("#id_password1").attr("class", "form-control warning-form")
                 disabled.password = false;
                 disabledCheck(disabled);
             }

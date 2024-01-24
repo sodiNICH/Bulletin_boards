@@ -15,6 +15,20 @@ from pathlib import Path
 from datetime import timedelta
 
 from decouple import config
+from celery import Celery
+
+
+app = Celery("config")
+app.config_from_object('django.conf:settings', namespace='CELERY')
+# app.conf.update(
+#     CELERY_TASK_SERIALIZER='pickle',
+#     CELERY_RESULT_SERIALIZER='pickle',
+#     CELERY_ACCEPT_CONTENT=['json', 'pickle'],
+#     CELERY_DISABLE_RATE_LIMITS=True,
+# )
+
+# Load task modules from all registered Django app configs.
+app.autodiscover_tasks()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,6 +91,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    "celery",
 
     "rest_framework",
     "rest_framework_simplejwt",
@@ -198,7 +214,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "ru-RU"  # en-us
+LANGUAGE_CODE = "ru-RU"  # en-us'
 
 TIME_ZONE = "UTC"  #'Europa/Moscow'
 

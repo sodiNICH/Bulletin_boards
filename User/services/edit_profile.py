@@ -3,11 +3,8 @@ Service for edit and update user
 """
 
 from logging import Logger
-
-from rest_framework import status
-from rest_framework.response import Response
-
 from minio import Minio
+from django.contrib.auth import get_user_model
 
 
 class UserProfileEditor:
@@ -19,15 +16,14 @@ class UserProfileEditor:
         self.minio_client = minio_client
         self.logger = logger
 
-    def update_profile_and_get_response(self, request, instance, serializer):
+    def update_profile(self, request, instance):
         """
         Updating profile and get response
         """
-        uploaded_file = request.FILES.get("avatar")
-        self._delete_previous_file(instance.avatar)
-        file_name = self._save_file_and_get_name(uploaded_file, instance.pk)
-        self._update_instance(request, serializer, instance, file_name)
-        return self._success_response()
+        uploaded_file = request.get("avatar")
+        self._delete_previous_file(instance["avatar"])
+        file_name = self._save_file_and_get_name(uploaded_file, instance["pk"])
+        self._update_instance(request, instance, file_name)
 
     def _delete_previous_file(self, file_name):
         """
@@ -45,23 +41,10 @@ class UserProfileEditor:
         self.logger.info("File saved in MinIO successfully")
         return file_obj.name
 
-    def _update_instance(self, request, serializer, instance, name):
+    def _update_instance(self, request, instance, name):
         """
         Updating user instance
         """
-        request.data["avatar"] = f"/media/{instance.pk}-{name}/"
-        serializer.is_valid(raise_exception=True)
-        serializer.update(instance, request.data)
-        serializer.save()
+        request["avatar"] = f"/media/{instance['pk']}-{name}/"
+        get_user_model().objects.filter(pk=instance['pk']).update(**request)
         self.logger.info("User data updated successfully")
-
-    def _success_response(self):
-        """
-        Return a success response
-        """
-        return Response(
-            data={
-                "message": "User data updated successfully",
-            },
-            status=status.HTTP_200_OK,
-        )

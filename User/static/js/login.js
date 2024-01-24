@@ -9,8 +9,13 @@ $(document).ready(function () {
                 console.log(data);
                 location.href = `/profile/${data.id}/`;
             },
-            error: function (error) {
-                alert('Что то пошло не так');
+            error: function (xhr, textStatus, errorThrown) {
+                console.log(xhr.status); // HTTP status code
+                if (xhr.status === 400) {
+                    $(".form-text").text("Данные введены некорректно");
+                } else {
+                    $(".form-text").text("Произошла ошибка. Пожалуйста, попробуйте еще раз.");
+                };
             },
         });
     });

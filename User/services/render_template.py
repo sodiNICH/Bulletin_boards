@@ -61,6 +61,7 @@ class UserProfileTemplate(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request: HttpRequest, *args, **kwargs):
+        print(kwargs.get("pk") == request.user.id)
         if kwargs.get("pk") == request.user.id:
             path_template = "User/auth_profile.html/"
         else:

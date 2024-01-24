@@ -6,7 +6,7 @@ import logging
 
 from django.contrib.auth import get_user_model
 
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, permissions, mixins, generics
 from rest_framework.parsers import MultiPartParser, JSONParser
 
 from .models import Advertisements

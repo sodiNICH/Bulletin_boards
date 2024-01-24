@@ -15,11 +15,11 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import DestroyAPIView
 
-from config.minio_utils import MinIOFileManager
+from .tasks import update_profile
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
+from .services.file_conversion import in_memory_uploaded_file_to_bytes
 from .services.auth import OperationForUserAuth
-from .services.edit_profile import UserProfileEditor
 
 
 User = get_user_model()
@@ -77,16 +77,37 @@ class UserViewSet(viewsets.ModelViewSet):
         return response
 
     def partial_update(self, request: HttpRequest, *args, **kwargs):
+        self.task_launching(request)
+        response = Response(
+            data={
+                "message": "User data updated successfully",
+            },
+            status=status.HTTP_200_OK,
+        )
+        logger.debug("Response отправлен")
+        return response
+
+    @staticmethod
+    def task_launching(request):
+        """
+        Preparing and launching a task
+        """
         instance = request.user
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=True,
-        )
-        edit_user_object = UserProfileEditor(MinIOFileManager, logger)
-        return edit_user_object.update_profile_and_get_response(
-            request=request, instance=instance, serializer=serializer
-        )
+        avatar = request.FILES.get("avatar")
+        file_to_byte = in_memory_uploaded_file_to_bytes(avatar)
+        request.data["avatar"] = {
+            "byte": file_to_byte,
+            "name": avatar.name,
+            "content_type": "image/jpeg",
+        }
+        data = {
+            "request": request.data,
+            "instance": {
+                "avatar": instance.avatar,
+                "pk": instance.pk,
+            },
+        }
+        update_profile.delay(data)
 
 
 class UserLoginAPI(ObtainAuthToken):
