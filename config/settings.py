@@ -92,6 +92,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "django_extensions",
+
     "celery",
 
     "rest_framework",
@@ -172,11 +174,8 @@ CACHES = {
             "CACHE_BACKEND", default="django.core.cache.backends.locmem.LocMemCache"
         ),
         "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
-        "OPTIONS": {
-            "CLIENT_CLASS": config(
-                "CACHE_CLIENT_CLASS",
-                default="django.core.cache.backends.locmem.LocMemCache",
-            ),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
 }

@@ -29,6 +29,11 @@ class User(AbstractUser):
         max_length=200,
         default="",
     )
+    advertisements = models.ManyToManyField(
+        "advertisements.Advertisements",
+        blank=True,
+        related_name="Advertisements"
+    )
 
     class Meta:
         ordering = ('created_at', )

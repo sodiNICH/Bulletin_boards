@@ -1,3 +1,16 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Advertisements
+
+
+@admin.register(Advertisements)
+class AdAdmin(admin.ModelAdmin):
+    """
+    Admin panel for advertisements
+    """
+    model = Advertisements
+    list_display = (
+        "id",
+        "title",
+        "images",
+    )

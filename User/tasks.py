@@ -8,7 +8,7 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 
 from config.minio_utils import MinIOFileManager
-from .services.file_conversion import bytes_to_in_memory_uploaded_file
+from services.file_conversion import bytes_to_in_memory_uploaded_file
 from .services.edit_profile import UserProfileEditor
 
 

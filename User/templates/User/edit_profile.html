@@ -4,28 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
+    <link rel="stylesheet" href="/static/css/edit_profile.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 </head>
 <body>
-    <form method="patch" enctype="multipart/form-data" id="profile-edit-form">
-        <p>
-            <label for="avatarInput">Выбрать изображение:</label>
-            <input type="file" id="avatarInput" name="avatar">
-        </p>
-        <p>
-            <label for="username">Имя пользователя:</label>
-            <input type="text" id="username" name="username">
-        </p>
-        <span id="warning-valid-username"></span>
-        <p>
-            <label for="description">Описание:</label>
-            <input type="text" id="description" name="description">
-        </p>
-        <button type="submit" id="edit_user_button">
-            Отправить
-        </button>
-    </form>
+    <div id="form-edit">
+        <form method="patch" enctype="multipart/form-data" id="profile-edit-form">
+            <p>
+                <div id="avatarButton" style="background-image: url('')">
+                    <input type="file" id="avatarInput" name="avatar" accept="image/*">
+                </div>
+            </p>
+            <p>
+                <label for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username">
+            </p>
+            <span id="warning-valid-username"></span>
+            <p>
+                <label for="description">Описание:</label>
+                <input type="text" id="description" name="description">
+            </p>
+            <button type="submit" id="edit_user_button">
+                Отправить
+            </button>
+        </form>
+    </div>
 
     <script src="/static/js/edit_profile.js"></script>
 </body>

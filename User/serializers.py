@@ -7,6 +7,7 @@ import logging
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.forms import ValidationError
+from django.forms.models import model_to_dict
 
 from .validators import ValidatorForRegistration
 
@@ -46,10 +47,12 @@ class UserSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
+        ads = list(map(model_to_dict, instance.advertisements.all()))
         data = {
             "username": instance.username,
             "avatar": instance.avatar,
             "description": instance.description,
+            "ads": ads,
         }
         return data
 

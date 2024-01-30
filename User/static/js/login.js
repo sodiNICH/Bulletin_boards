@@ -10,9 +10,9 @@ $(document).ready(function () {
                 location.href = `/profile/${data.id}/`;
             },
             error: function (xhr, textStatus, errorThrown) {
-                console.log(xhr.status); // HTTP status code
+                console.log(xhr.status);
                 if (xhr.status === 400) {
-                    $(".form-text").text("Данные введены некорректно");
+                    $(".form-text").text("Неверно введен пароль или логин");
                 } else {
                     $(".form-text").text("Произошла ошибка. Пожалуйста, попробуйте еще раз.");
                 };

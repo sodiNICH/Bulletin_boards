@@ -17,7 +17,7 @@ router.register(
 urlpatterns = [
     # Template endpoints
     path(
-        "create/", render_template.CreateAdTemplate.as_view(), name="template-create-ad",
+        "create/ad/", render_template.CreateAdTemplate.as_view(), name="template-create-ad",
     ),
     # API endpoints
     path(

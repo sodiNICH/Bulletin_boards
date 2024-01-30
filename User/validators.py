@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ValidatorForRegistration:
     """
-    Object for custom validators
+    Object for custom validators register
     """
 
     @classmethod
