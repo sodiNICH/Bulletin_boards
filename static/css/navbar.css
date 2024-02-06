@@ -1,0 +1,68 @@
+#exit-button {
+    float: right;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 40px;
+    color: white;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+#navbar {
+    background-color: #333;
+    overflow: hidden;
+    display: flex; /* Используем flexbox */
+    align-items: center; /* Выравнивание по вертикали */
+}
+
+#user-avatar-nav {
+    width: 100px; /* задайте желаемую ширину изображения */
+    height: auto; /* автоматическая высота для сохранения пропорций */
+    vertical-align: middle; /* выравнивание изображения по вертикали */
+    margin-right: 10px; /* Добавляем небольшой отступ справа, чтобы разделить изображение от остальных ссылок */
+    border-radius: 100px;
+    margin: 10px;
+}
+
+#mainpage-img {
+    width: 100px; /* задайте желаемую ширину изображения */
+    height: auto; /* автоматическая высота для сохранения пропорций */
+    vertical-align: middle; /* выравнивание изображения по вертикали */
+    margin-right: 10px; /* Добавляем небольшой отступ справа, чтобы разделить изображение от остальных ссылок */
+    border-radius: 100px;
+    margin: 10px;
+    user-select: none;
+    pointer-events: none;
+}
+
+#navbar a.links {
+    color: #f2f2f2;
+    border-radius: 20px;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+#create_ad {
+    background-color: aqua;
+    text-align: center;
+    padding: 14px 16px;
+    border-radius: 20px;
+    margin-left: auto; /* Помещаем кнопку "Создать объявление" в крайнем правом углу */
+}
+
+#create_ad a {
+    text-decoration: none;
+    color: black;
+}
+
+#navbar a.links:hover {
+    background-color: #ddd;
+    color: black;
+}

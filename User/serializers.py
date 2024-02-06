@@ -28,7 +28,6 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
         )
 
-
     def validate(self, attrs):
         """
         Validate username and password using custom validators
@@ -47,12 +46,15 @@ class UserSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
-        ads = list(map(model_to_dict, instance.advertisements.all()))
         data = {
+            "id": instance.id,
             "username": instance.username,
             "avatar": instance.avatar,
             "description": instance.description,
-            "ads": ads,
+            "ads": [
+                {**model_to_dict(ad), "in_fav": ad in instance.favorites.all()}
+                for ad in instance.advertisements.all()
+            ],
         }
         return data
 

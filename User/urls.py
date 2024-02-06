@@ -8,7 +8,7 @@ from rest_framework import routers
 
 from . import views
 from .validators import ValidatedDataAPI
-from .services import render_template
+from . import render_template
 
 
 router = routers.DefaultRouter()
@@ -44,6 +44,11 @@ urlpatterns = [
     path(
         "",
         include(router.urls),
+    ),
+    path(
+        "user/favorites/",
+        views.FavoritesManager.as_view(),
+        name="favorites-manager",
     ),
     path(
         "login/api/",

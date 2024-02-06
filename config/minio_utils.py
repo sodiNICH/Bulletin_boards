@@ -69,7 +69,7 @@ class MinIOFileManager:
         try:
             minio_object = cls._get_object(object_name)
             image_bytes = cls._read_file(minio_object)
-            response = cls._response(image_bytes)
+            response = cls._response(image_bytes, object_name)
             return response
         except S3Error:
             return HttpResponseNotFound()
@@ -94,11 +94,12 @@ class MinIOFileManager:
         return image_bytes
 
     @staticmethod
-    def _response(image_bytes):
+    def _response(image_bytes, object_name):
         """
         Creating and return response
         """
         response = HttpResponse(image_bytes, content_type="image/jpeg")
+        response['Content-Disposition'] = f'inline; filename="{object_name}"'
         return response
 
 

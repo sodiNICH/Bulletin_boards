@@ -1,33 +1,10 @@
-#info-user {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.empty-avatar {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background-color: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 70px;
-    color: #fff;
-}
-
-#user-avatar {
-    border-radius: 100px;
-    width: 200px;
-    height: 200px;
-    background-size: cover;
-    background-position: center;
-}
-
 .carousel-item {
     width: 300px;
     height: 176px;
+}
+
+.link-ad {
+    text-decoration: none;
 }
 
 .carousel-item img {
@@ -48,9 +25,11 @@
 }
 
 #all-ads {
-    margin-top: 20px;
-    /* Отступ сверху, чтобы было пространство между info-user и all-ads */
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin: 0 auto; /* Центрируем контейнер на странице */
+    max-width: 1200px; /* Максимальная ширина контейнера */
 }
 
 .card {

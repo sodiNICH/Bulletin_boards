@@ -11,6 +11,7 @@ $(document).ready(function () {
             contentType: false,
             success: function (response) {
                 console.log(response.message);
+                window.location.href = "";
             },
             error: function (xhr) {
                 console.log(xhr.responseJSON);

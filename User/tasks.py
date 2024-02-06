@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 from config.minio_utils import MinIOFileManager
 from services.file_conversion import bytes_to_in_memory_uploaded_file
-from .services.edit_profile import UserProfileEditor
+from .services.update_profile import UserProfileUpdate
 
 
 logger = logging.getLogger(__name__)
@@ -17,17 +17,37 @@ User = get_user_model()
 
 
 @shared_task()
-def update_profile(data):
+def update_profile(request_data, user_id):
     """
     Task for updating profile
     """
-    request = data["request"]
-    instance_data = data["instance"]
-    avatar = request["avatar"]
-    request["avatar"] = bytes_to_in_memory_uploaded_file(
-        avatar["byte"], avatar["name"], avatar["content_type"]
-    )
-
-    edit_user_object = UserProfileEditor(MinIOFileManager, logger)
-    edit_user_object.update_profile(request, instance_data)
+    interface_for_update = prepare_data(request_data)
+    update_user_profile(request_data, interface_for_update, user_id)
     logger.debug("Таска сработала")
+
+
+def prepare_data(request_data):
+    """
+    Preparing data for profile update
+    """
+    if avatar := request_data.get("avatar"):
+        request_data["avatar"] = bytes_to_in_memory_uploaded_file(
+            avatar["byte"], avatar["name"], avatar["content_type"]
+        )
+        interface_for_update = UserProfileUpdate(logger, MinIOFileManager)
+    else:
+        interface_for_update = UserProfileUpdate(logger)
+
+    return interface_for_update
+
+
+def update_user_profile(request_data, interface_for_update, user_id):
+    """
+    Updating a user profile
+    """
+    instance = User.objects.get(pk=user_id)
+    instance_data = {
+        "avatar": instance.avatar,
+        "pk": instance.pk,
+    }
+    interface_for_update.update_profile(request_data, instance_data)

@@ -5,14 +5,18 @@ Service for edit and update user
 from logging import Logger
 from minio import Minio
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
 
-class UserProfileEditor:
+User = get_user_model()
+
+
+class UserProfileUpdate:
     """
     Class with methods for editing user profile
     """
 
-    def __init__(self, minio_client: Minio, logger: Logger):
+    def __init__(self, logger: Logger, minio_client: Minio=None):
         self.minio_client = minio_client
         self.logger = logger
 
@@ -20,10 +24,12 @@ class UserProfileEditor:
         """
         Updating profile and get response
         """
-        uploaded_file = request.get("avatar")
-        self._delete_previous_file(instance["avatar"])
-        file_name = self._save_file_and_get_name(uploaded_file, instance["pk"])
-        self._update_instance(request, instance, file_name)
+        if uploaded_file := request.get("avatar"):
+            self._delete_previous_file(instance["avatar"])
+            file_name = self._save_file_and_get_name(uploaded_file, instance["pk"])
+            self._update_instance(request, instance, file_name)
+        else:
+            self._update_instance(request, instance)
 
     def _delete_previous_file(self, file_name):
         """
@@ -41,10 +47,14 @@ class UserProfileEditor:
         self.logger.info("File saved in MinIO successfully")
         return file_obj.name
 
-    def _update_instance(self, request, instance, name):
+    def _update_instance(self, request, instance, name=None):
         """
         Updating user instance
         """
-        request["avatar"] = f"/media/{instance['pk']}-{name}/"
-        get_user_model().objects.filter(pk=instance['pk']).update(**request)
-        self.logger.info("User data updated successfully")
+        query_set = User.objects.filter(pk=instance['pk'])
+        if name:
+            request["avatar"] = f"/media/{instance['pk']}-{name}/"
+        else:
+            del request["avatar"]
+        query_set.update(**request)
+        cache.set(f"user_{instance['pk']}", query_set[0], timeout=600)

@@ -20,3 +20,23 @@ class CreateAdTemplate(APIView):
             return redirect(reverse("profile-template", kwargs={"pk": request.user.id}))
         path_template = "advertisements/create_ad.html/"
         return Response(template_name=path_template)
+
+
+class MainPageTemplate(APIView):
+    """
+    Register template renderer
+    """
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        path_template = "advertisements/main_page.html/"
+        return Response(template_name=path_template)
+
+
+class DetailAdTemplate(APIView):
+    """
+    Register template renderer
+    """
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        path_template = "advertisements/detail_ad.html/"
+        return Response(template_name=path_template)

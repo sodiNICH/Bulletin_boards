@@ -1,33 +1,13 @@
-var url = location.href;
-var match = url.match(/\/profile\/(\d+)\/$/);
-var id = match[1];
-console.log(id);
-
 $(document).ready(function () {
     $.ajax({
-        url: `/profile/user/api/${id}`,
+        url: "/ad/api/",
         type: "GET",
-        success: function (data) {
-            $('title').text(data.username);
-            var newHTML = `<h1 id="username">${data.username}</h1>` +
-                `<p id="description">${data.description}</p>`;
-
-            $('#info-user').prepend(newHTML);
-
-            if (data.avatar.length > 1) {
-                $("#info-user").prepend(`<img src="${data.avatar}" alt="${data.username}" id="user-avatar">`);
-            } else {
-                $("#info-user").prepend("<div class='empty-avatar'>👤</div>");
-            };
-            console.log(data);
-
-            // Вывод данных объявлений
-            var ads = data.ads;
+        success: function (response) {
             var all_ads = $("#all-ads");
-            for (let i = 0; i < ads.length; i++) {
-                var ad = ads[i];
+            for (let i = 0; i < response.length; i++) {
+                var ad = response[i];
                 var card = $('<div>').addClass('card').css('width', '18rem');
-                var carousel = $('<div>').addClass('carousel slide').attr('id', `carouselExampleIndicators${i}`);
+                var carousel = $('<div>').addClass('carousel slide').attr('id', `carouselExampleIndicators${ad.id}`);
                 var indicators = $('<div>').addClass('carousel-indicators');
                 var carousel_inner = $('<div>').addClass('carousel-inner');
 
@@ -38,12 +18,13 @@ $(document).ready(function () {
                 // Добавляем carousel в card
                 card.append(carousel);
 
+                console.log(ad.images)
                 // Добавляем изображения в carousel-inner
-                let img = ads[i].images.slice(0, 5);
+                let img = ad.images.slice(0, 5);
                 for (let j = 0; j < img.length; j++) {
                     var button = $('<button>').attr({
                         'type': 'button',
-                        'data-bs-target': `#carouselExampleIndicators${i}`,
+                        'data-bs-target': `#carouselExampleIndicators${ad.id}`,
                         'data-bs-slide-to': j,
                         'aria-label': 'Slide ' + (j + 1)
                     });
@@ -63,7 +44,7 @@ $(document).ready(function () {
                 // Добавляем кнопки управления в carousel
                 var prevButton = $('<button>').addClass('carousel-control-prev').attr({
                     'type': 'button',
-                    'data-bs-target': `#carouselExampleIndicators${i}`,
+                    'data-bs-target': `#carouselExampleIndicators${ad.id}`,
                     'data-bs-slide': 'prev'
                 });
                 prevButton.append($('<span>').addClass('carousel-control-prev-icon').attr('aria-hidden', 'true'));
@@ -71,7 +52,7 @@ $(document).ready(function () {
 
                 var nextButton = $('<button>').addClass('carousel-control-next').attr({
                     'type': 'button',
-                    'data-bs-target': `#carouselExampleIndicators${i}`,
+                    'data-bs-target': `#carouselExampleIndicators${ad.id}`,
                     'data-bs-slide': 'next'
                 });
                 nextButton.append($('<span>').addClass('carousel-control-next-icon').attr('aria-hidden', 'true'));
@@ -82,7 +63,10 @@ $(document).ready(function () {
 
                 // Создаем блок card-body для каждого объявления
                 var cardBody = $('<div>').addClass('card-body');
-                cardBody.append($('<h5>').addClass('card-title').text(ad.title));
+                var headerTitle = $('<h5>').addClass('card-title');
+                var linkAd = $('<a>').attr("href", `/ad/api/${ad.id}`).attr("class", "link-ad").text(ad.title);
+                headerTitle.append(linkAd);
+                cardBody.append(headerTitle);
 
                 // Добавляем card-body в card
                 card.append(cardBody);
@@ -94,12 +78,13 @@ $(document).ready(function () {
                 var listItemCondition = $("<li>").addClass("list-group-item").text(`${ad.condition}`);
 
                 var cardBody = $('<div>').addClass('card-body');
-                cardBody.append($('<a>').addClass('card-link').attr("href", `/profile/${data.id}/`).text(data.username));
+                cardBody.append($('<a>').addClass('card-link').attr("href", `/profile/${ad.owner.id}/`).text(ad.owner.username));
 
+                console.log(ad)
                 if (ad.in_fav) {
-                    cardBody.append($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"'></i>`))
+                    cardBody.append($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
                 } else {
-                    cardBody.append($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"'></i>`))
+                    cardBody.append($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
                 }
                 listGroup.append(listItemPrice, listItemCategory, listItemCondition);
 
@@ -109,9 +94,6 @@ $(document).ready(function () {
                 // Добавляем card в all_ads
                 all_ads.append(card);
             }
-        },
-        error: function (error) {
-            alert('Что то не так');
-        },
+        }
     });
 });

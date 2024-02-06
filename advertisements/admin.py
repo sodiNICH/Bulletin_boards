@@ -11,6 +11,7 @@ class AdAdmin(admin.ModelAdmin):
     model = Advertisements
     list_display = (
         "id",
+        "created_at",
         "title",
         "images",
     )

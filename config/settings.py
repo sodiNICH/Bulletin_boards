@@ -19,7 +19,7 @@ from celery import Celery
 
 
 app = Celery("config")
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object("django.conf:settings", namespace="CELERY")
 # app.conf.update(
 #     CELERY_TASK_SERIALIZER='pickle',
 #     CELERY_RESULT_SERIALIZER='pickle',
@@ -91,16 +91,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "django_extensions",
-
     "celery",
-
     "rest_framework",
     "rest_framework_simplejwt",
-
     "minio_storage",
-
     "advertisements",
     "User",
 ]
@@ -174,8 +169,8 @@ CACHES = {
             "CACHE_BACKEND", default="django.core.cache.backends.locmem.LocMemCache"
         ),
         "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     },
 }
@@ -215,7 +210,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "ru-RU"  # en-us'
 
-TIME_ZONE = "UTC"  #'Europa/Moscow'
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
