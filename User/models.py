@@ -40,6 +40,9 @@ class User(AbstractUser):
         related_name="Advertisements"
     )
 
+    def __str__(self) -> str:
+        return f"{self.pk} {self.username}"
+
     class Meta:
         ordering = ('created_at', )
         verbose_name = 'пользователя'

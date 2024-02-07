@@ -40,13 +40,18 @@ urlpatterns = [
         render_template.UserProfileTemplate.as_view(),
         name="profile-template",
     ),
+    path(
+        "favorites/",
+        render_template.UserFavoriteTemplate.as_view(),
+        name="favorite-template",
+    ),
     # API endpoints
     path(
         "",
         include(router.urls),
     ),
     path(
-        "user/favorites/",
+        "user/favorites/api/",
         views.FavoritesManager.as_view(),
         name="favorites-manager",
     ),
@@ -62,7 +67,7 @@ urlpatterns = [
     ),
     # Endpoint for validating data
     path(
-        "register/validated/",
+        "register/validated/api/",
         ValidatedDataAPI.as_view(),
         name="validated-register",
     ),

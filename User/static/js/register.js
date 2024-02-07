@@ -26,7 +26,7 @@ $(document).ready(function () {
         };
 
         $.ajax({
-            url: '/profile/register/validated/',
+            url: '/profile/register/validated/api/',
             method: 'POST',
             data: requestData,
             dataType: 'json',
@@ -60,7 +60,7 @@ $(document).ready(function () {
         };
 
         $.ajax({
-            url: '/profile/register/validated/',
+            url: '/profile/register/validated/api/',
             method: 'POST',
             data: requestData,
             dataType: 'json',

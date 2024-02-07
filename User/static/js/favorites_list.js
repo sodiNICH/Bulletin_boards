@@ -1,6 +1,6 @@
 $(document).ready(function () {
     $.ajax({
-        url: "/ad/api/",
+        url: "/profile/user/favorites/api/",
         type: "GET",
         success: function (response) {
             var all_ads = $("#all-ads");
@@ -64,7 +64,7 @@ $(document).ready(function () {
                 // Создаем блок card-body для каждого объявления
                 var cardBody = $('<div>').addClass('card-body');
                 var headerTitle = $('<h5>').addClass('card-title');
-                var linkAd = $('<a>').attr("href", ad.url).attr("class", "link-ad").text(ad.title);
+                var linkAd = $('<a>').attr("href", `/ad/api/${ad.id}`).attr("class", "link-ad").text(ad.title);
                 headerTitle.append(linkAd);
                 cardBody.append(headerTitle);
 
@@ -78,15 +78,13 @@ $(document).ready(function () {
                 var listItemCondition = $("<li>").addClass("list-group-item").text(`${ad.condition}`);
 
                 var cardBody = $('<div>').addClass('card-body');
-                cardBody.append($('<a>').addClass('card-link').attr("href", `/profile/${ad.owner.id}/`).text(ad.owner.username));
+                console.log(ad);
+                if (ad.in_fav) {
+                    cardBody.append($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"'></i>`))
+                } else {
+                    cardBody.append($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"'></i>`))
+                }
 
-                if (ad.in_fav != undefined) {
-                    if (ad.in_fav) {
-                        cardBody.append($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
-                    } else {
-                        cardBody.append($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
-                    }
-                };
                 listGroup.append(listItemPrice, listItemCategory, listItemCondition);
 
                 // Добавляем list-group в card
@@ -95,6 +93,6 @@ $(document).ready(function () {
                 // Добавляем card в all_ads
                 all_ads.append(card);
             }
-        }
+        },
     });
 });

@@ -12,7 +12,7 @@ function favorites (id) {
     }
 
     $.ajax({
-        url: '/profile/user/favorites/',
+        url: '/profile/user/favorites/api/',
         method: 'POST',
         datatype: 'json',
         data: {

@@ -29,6 +29,7 @@
     flex-wrap: wrap;
     justify-content: space-around;
     margin: 0 auto; /* Центрируем контейнер на странице */
+    margin-top: 120px;
     max-width: 1200px; /* Максимальная ширина контейнера */
 }
 

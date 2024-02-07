@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
 from django.http import HttpRequest
 
 from rest_framework import permissions, status, mixins, viewsets
@@ -18,11 +19,11 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import DestroyAPIView
 
 from services.file_conversion import in_memory_uploaded_file_to_bytes
-from advertisements.models import Advertisements
 from .tasks import update_profile
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
 from .services.auth import OperationForUserAuth
+from .services.favorite_manager import adding_or_deleting_to_favorites, user_favorites_and_response
 
 
 User = get_user_model()
@@ -59,19 +60,6 @@ class UserViewSet(viewsets.ModelViewSet):
         ]
         return permissions_list or super().get_permissions()
 
-    def retrieve(self, request, *args, **kwargs):
-        user_cache_key = f"user_{kwargs['pk']}"
-        cached_user = cache.get(user_cache_key)
-
-        if cached_user := cache.get(user_cache_key):
-            serializer = self.get_serializer(cached_user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        cached_user = User.objects.get(pk=kwargs["pk"])
-        timeout = 600 if request.user.id == kwargs["pk"] else 300
-        cache.set(user_cache_key, cached_user, timeout=timeout)
-        return super().retrieve(request, *args, **kwargs)
-
     def create(self, request: HttpRequest, *args, **kwargs):
         # Creating new user
         serializer = self.get_serializer(data=request.data)
@@ -87,6 +75,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 "id": user.id,
             },
         )
+
         # Adding user data in cache
         user_data = User.objects.get(pk=user.id)
         cache.set(f"user_{user.id}", user_data, timeout=600)
@@ -94,6 +83,11 @@ class UserViewSet(viewsets.ModelViewSet):
         OperationForUserAuth.set_cookies(user, response)
         logger.debug(request.COOKIES.get("access"))
         return response
+
+    def retrieve(self, request, *args, **kwargs):
+        return self.caching_user(kwargs["pk"], request) or super().retrieve(
+            request, *args, **kwargs
+        )
 
     def partial_update(self, request: HttpRequest, *args, **kwargs):
         self.task_launching(request)
@@ -105,6 +99,22 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         logger.debug("Response отправлен")
         return response
+
+    def caching_user(self, pk, request) -> Response | None:
+        """
+        Checking user for caching
+        """
+        user_cache_key = f"user_{pk}"
+        cached_user = cache.get(user_cache_key)
+
+        if cached_user := cache.get(user_cache_key):
+            serializer = self.get_serializer(cached_user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        cached_user = User.objects.get(pk=pk)
+        timeout = 600 if request.user.id == pk else 300
+        cache.set(user_cache_key, cached_user, timeout=timeout)
+        return None
 
     @staticmethod
     def task_launching(request):
@@ -188,15 +198,8 @@ class FavoritesManager(APIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        ad_id = request.POST.get("ad")
-        ad = Advertisements.objects.get(id=ad_id)
+        ad_id = request.data.get("ad")
+        return adding_or_deleting_to_favorites(user, ad_id)
 
-        if ad in user.favorites.all():
-            user.favorites.remove(ad)
-            return Response(
-                status=status.HTTP_204_NO_CONTENT, data={"message": "Favorites remove"}
-            )
-        user.favorites.add(ad)
-        return Response(
-            status=status.HTTP_201_CREATED, data={"message": "Favorites add"}
-        )
+    def get(self, request, *args, **kwargs):
+        return user_favorites_and_response(request)

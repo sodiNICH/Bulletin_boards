@@ -17,7 +17,7 @@ class CreateAdTemplate(APIView):
     def get(self, request: HttpRequest, *args, **kwargs):
         print(request.user.is_authenticated)
         if not request.user.is_authenticated:
-            return redirect(reverse("profile-template", kwargs={"pk": request.user.id}))
+            return redirect(reverse("register-template"))
         path_template = "advertisements/create_ad.html/"
         return Response(template_name=path_template)
 
