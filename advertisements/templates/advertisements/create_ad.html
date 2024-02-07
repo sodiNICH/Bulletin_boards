@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="/static/js/create_ad.js/"></script>
+    <script src="/static/js/public_ad.js/"></script>
+    <title>Создание объявления</title>
+    <style>
+        .counter {
+            font-size: 12px;
+            color: gray;
+        }
+
+        .limit-reached {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <object data="/static/html/navbar.html/" type="text/html"></object> -->
+    <div id="form-ad">
+        <form method="post" enctype="multipart/form-data" id="ad-create-form">
+            <p>
+                <label for="title">Заголовок:</label><br>
+                <input type="text" id="title" name="title" required>
+                <div class="counter" id="counter-title">
+                    Символов: <span id="charCount">0</span>/50
+                </div>
+            </p>
+
+            <p>
+                <label for="condition">Состояние:</label>
+                <select id="condition-form" name="condition" required>
+                    <option value="b/w">Б/у</option>
+                    <option value="new">Новый</option>
+                </select>
+            </p>
+
+            <p>
+                <label for="description">Описание:</label><br>
+                <textarea style="resize: none ;width: 633px; height: 184px;" id="description" name="description" rows="4" cols="50" required minlength="50"></textarea>
+                <div class="counter" id="counter-desc">
+                    Символов: <span id="charCount">0</span>/1000
+                </div>
+            </p>
+
+            <p>
+                <label for="price">Цена:</label><br>
+                <input type="number" id="price" name="price" step="1" max="10000000000" required>
+            </p>
+
+            <!-- <p>
+                <label for="location">Location:</label><br>
+                <textarea id="location" name="location" rows="2" cols="50"></textarea><br>
+            </p> -->
+
+            <p>
+                <label for="categories">Категории:</label><br>
+                <select name="category" id="categories-form">
+                    <option value="">Выберите категорию</option>
+                </select>
+            </p>
+
+            <div id="subcategoryField" style="display: none;">
+                <label for="subcategories">Подкатегорию:</label><br>
+                <select id="subcategories" name="subcategory">
+                    <option value="">Выберите подкатегорию</option>
+                </select><br>
+            </div>
+            <p>
+                <input type="file" id="images" name="images" multiple accept="image/*">
+            </p>
+
+            <input type="submit" value="Опубликовать">
+        </form>
+    </div>
+</body>
+
+</html>

@@ -16,7 +16,7 @@ class OperationForUserAuth:
     """
 
     @staticmethod
-    def generate_tokens(user):
+    def generate_tokens(user: QuerySet) -> dict:
         """
         Generate refresh and access tokens for the given user
         """
@@ -44,7 +44,7 @@ class OperationForUserAuth:
         logger.debug('Токена созданы и добавлены')
 
     @classmethod
-    def delete_cookie(cls, response):
+    def delete_cookie(cls, response: HttpResponse):
         '''
         Deleting tokens from cookies
         '''

@@ -1,143 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/register.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
+
 <body>
-    <h1 id="register-title">
-        Регистрация
-    </h1>
-    <form method="post" enctype="multipart/form-data" id="register-form">
-        <p>
-            <label for="id_username">Логин:</label>
-            <input type="text" name="username" id="id_username" maxlength="100" autofocus="" required="">
-        </p>
-        <span id="warning-valid-username"></span>
-        <p>
-            <label for="id_password1">Пароль:</label>
-            <input type="password" name="password1" maxlength="50" required="" id="id_password1">
-        </p>
-        <span id="warning-valid-password"></span>
-        <button type="submit" id="register-button" disabled>
-            Зарегистрироваться
-        </button>
-    </form>
-    <p id="if-register">
-        Уже зарегистрированы? <a href="/profile/login/">Войти</a>
-    </p>
+    <section id="register-section">
+        <h1 id="register-title">
+            Регистрация
+        </h1>
+        <form method="post" enctype="multipart/form-data" id="register-form">
+            <p>
+                <label for="id_username" class="form-label">Логин:</label>
+                <input type="text" name="username" id="id_username" maxlength="100" autofocus="" required=""
+                    class="form-control" aria-describedby>
+            </p>
+            <div id="warning-valid-username" class="form-text"></div>
+            <p>
+                <label for="id_password1" class="form-label">Пароль:</label>
+                <input type="password" name="password1" maxlength="50" required="" id="id_password1"
+                    class="form-control" aria-describedby>
+            </p>
+            <span id="warning-valid-password" class="form-text"></span>
+            <p>
+                <button type="submit" id="register-button" class="btn btn-secondary" disabled>
+                    Зарегистрироваться
+                </button>
+            </p>
+        </form>
+        <div class="alert alert-dark" role="alert">
+            Уже зарегистрированы? <a href="/profile/login/" class="alert-link">Войти</a>
+        </div>
+    </section>
 
-    <script>
-        $(document).ready(function () {
-            $("#id_password1").on("input", handleInputPassword);
-            $("#id_username").on("input", handleInputUsername);
+    <script src="/static/js/register.js"></script>
 
-            var disabled = {
-                username: false,
-                password: false,
-            }
-
-            function disabledCheck (disabled) {
-                if (disabled.username && disabled.password) {
-                    $("#register-button").prop("disabled", false);
-                    console.log("Данные валидные");
-                } else {
-                    $("#register-button").prop("disabled", true);
-                    console.log("Данные не валидные");
-                };
-            };
-
-            function handleInputUsername () {
-                var username = $("#id_username").val();
-                console.log(username);
-
-                var requestData = {
-                    username: username
-                };
-
-                $.ajax({
-                    url: '/profile/register/validated/',
-                    method: 'POST',
-                    data: requestData,
-                    dataType: 'json',
-                    success: function(response) {
-                        console.log(response);
-                        $("#warning-valid-username").empty();
-                        disabled.username = true;
-                        disabledCheck(disabled);
-                    },
-                    error: function(xhr) {
-                        var errors_json = xhr.responseJSON;
-                        $("#warning-valid-username").empty();
-                        $("#warning-valid-username").append(`<strong>${errors_json.error.slice(2, -2)}</strong>`);
-                        disabled.username = false;
-                        disabledCheck(disabled);
-                    }
-                });
-            };
-
-            function handleInputPassword () {
-                var password = $("#id_password1").val();
-                console.log(password);
-
-                var requestData = {
-                    password: password
-                };
-
-                $.ajax({
-                    url: '/profile/register/validated/',
-                    method: 'POST',
-                    data: requestData,
-                    dataType: 'json',
-                    success: function(response) {
-                        console.log(response);
-                        $("#warning-valid-password").empty();
-                        disabled.password = true;
-                        disabledCheck(disabled);
-                    },
-                    error: function(xhr) {
-                        var errors_json = xhr.responseJSON;
-                        $("#warning-valid-password").empty();
-                        $("#warning-valid-password").append(`<strong>${errors_json.error.slice(2, -2)}</strong>`);
-                        disabled.password = false;
-                        disabledCheck(disabled);
-                    }
-                });
-            };
-
-            $('#register-form').submit(function (event) {
-                event.preventDefault();
-                let formData = $(this).serializeArray();
-                let form = {};
-                $.each(formData, function(index, field) {
-                    if (field.name === 'username') {
-                        form[field.name] = field.value;
-                    };
-                    if (field.name === 'password1') {
-                        form['password'] = field.value;
-                    };
-                });
-                console.log(form)
-
-                $.ajax({
-                    url: "/profile/user/api/",
-                    type: "POST",
-                    dataType: 'json',
-                    data: JSON.stringify(form),
-                    contentType: 'application/json',
-                    success: function (data) {
-                        console.log('Все норм');
-                        window.location.href = `/profile/${data.id}/`
-                    },
-                    error: function (xhr) {
-                        let error = xhr.responseJSON;
-                        console.log(error);
-                    },
-                });
-            });
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
 </body>
+
 </html>

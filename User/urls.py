@@ -7,7 +7,8 @@ from django.urls import include, path
 from rest_framework import routers
 
 from . import views
-from .services import render_template
+from .validators import ValidatedDataAPI
+from . import render_template
 
 
 router = routers.DefaultRouter()
@@ -39,10 +40,20 @@ urlpatterns = [
         render_template.UserProfileTemplate.as_view(),
         name="profile-template",
     ),
+    path(
+        "favorites/",
+        render_template.UserFavoriteTemplate.as_view(),
+        name="favorite-template",
+    ),
     # API endpoints
     path(
         "",
         include(router.urls),
+    ),
+    path(
+        "user/favorites/api/",
+        views.FavoritesManager.as_view(),
+        name="favorites-manager",
     ),
     path(
         "login/api/",
@@ -54,9 +65,10 @@ urlpatterns = [
         views.UserLogoutAPI.as_view(),
         name="logout-api",
     ),
+    # Endpoint for validating data
     path(
-        "register/validated/",
-        views.ValidatedDataAPI.as_view(),
+        "register/validated/api/",
+        ValidatedDataAPI.as_view(),
         name="validated-register",
     ),
 ]

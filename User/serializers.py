@@ -7,6 +7,7 @@ import logging
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.forms import ValidationError
+from django.forms.models import model_to_dict
 
 from .validators import ValidatorForRegistration
 
@@ -27,7 +28,6 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
         )
 
-
     def validate(self, attrs):
         """
         Validate username and password using custom validators
@@ -47,9 +47,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = {
+            "id": instance.id,
             "username": instance.username,
             "avatar": instance.avatar,
             "description": instance.description,
+            "ads": [
+                {**model_to_dict(ad), "in_fav": ad in instance.favorites.all()}
+                for ad in instance.advertisements.all()
+            ],
         }
         return data
 

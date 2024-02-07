@@ -9,6 +9,7 @@ from typing import Any
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse_lazy
 
@@ -78,8 +79,10 @@ class TokenAuthMiddleware:
         """
         Update token
         """
-        user_id = decode(refresh_token, options={"verify_signature": False}).get('user_id')
-        user = User.objects.get(id=user_id)
+        user = cache.get("user")
+        if not user:
+            user_id = decode(refresh_token, options={"verify_signature": False}).get('user_id')
+            user = User.objects.get(id=user_id)
         new_access_token = AccessToken.for_user(user)
         new_refresh_token = RefreshToken.for_user(user)
         logger.info("Tokens updates")
@@ -121,8 +124,6 @@ class CheckCookiesMiddleware:
         response = self.get_response(request)
         if access_token := request.COOKIES.get("access"):
             self.check_user_id(request, access_token, response)
-        else:
-            response.set_cookie("user_id")
         return response
 
     def check_user_id(self, request ,access_token, response):

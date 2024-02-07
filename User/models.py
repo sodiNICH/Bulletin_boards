@@ -4,9 +4,6 @@ Models related User
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.urls import reverse
-
-from autoslug import AutoSlugField
 
 
 class User(AbstractUser):
@@ -32,14 +29,19 @@ class User(AbstractUser):
         max_length=200,
         default="",
     )
-    slug = AutoSlugField(
-        unique=True,
-        editable=True,
-        null=True,
+    favorites = models.ManyToManyField(
+        "advertisements.Advertisements",
+        blank=True,
+        related_name="Favorites"
+    )
+    advertisements = models.ManyToManyField(
+        "advertisements.Advertisements",
+        blank=True,
+        related_name="Advertisements"
     )
 
-    def get_absolute_url(self):
-        return reverse("user", kwargs={"slug": self.slug})
+    def __str__(self) -> str:
+        return f"{self.pk} {self.username}"
 
     class Meta:
         ordering = ('created_at', )

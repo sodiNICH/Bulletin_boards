@@ -5,24 +5,25 @@ All views for everything related to the User
 import logging
 
 from django.contrib.auth import get_user_model
-from django.forms import ValidationError
+from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
 from django.http import HttpRequest
 
 from rest_framework import permissions, status, mixins, viewsets
+from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.views import APIView
 from rest_framework.generics import DestroyAPIView
 
-from config.minio_utils import MinIOFileManager
+from services.file_conversion import in_memory_uploaded_file_to_bytes
+from .tasks import update_profile
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
 from .services.auth import OperationForUserAuth
-from .services.edit_profile import UserProfileEditor
-from .validators import ValidatorForRegistration
+from .services.favorite_manager import adding_or_deleting_to_favorites, user_favorites_and_response
 
 
 User = get_user_model()
@@ -74,22 +75,60 @@ class UserViewSet(viewsets.ModelViewSet):
                 "id": user.id,
             },
         )
+
+        # Adding user data in cache
+        user_data = User.objects.get(pk=user.id)
+        cache.set(f"user_{user.id}", user_data, timeout=600)
         # Adding the required tokens to cookies
         OperationForUserAuth.set_cookies(user, response)
         logger.debug(request.COOKIES.get("access"))
         return response
 
+    def retrieve(self, request, *args, **kwargs):
+        return self.caching_user(kwargs["pk"], request) or super().retrieve(
+            request, *args, **kwargs
+        )
+
     def partial_update(self, request: HttpRequest, *args, **kwargs):
-        instance = request.user
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=True,
+        self.task_launching(request)
+        response = Response(
+            data={
+                "message": "User data updated successfully",
+            },
+            status=status.HTTP_200_OK,
         )
-        edit_user_object = UserProfileEditor(MinIOFileManager, logger)
-        return edit_user_object.update_profile_and_get_response(
-            request=request, instance=instance, serializer=serializer
-        )
+        logger.debug("Response отправлен")
+        return response
+
+    def caching_user(self, pk, request) -> Response | None:
+        """
+        Checking user for caching
+        """
+        user_cache_key = f"user_{pk}"
+        cached_user = cache.get(user_cache_key)
+
+        if cached_user := cache.get(user_cache_key):
+            serializer = self.get_serializer(cached_user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        cached_user = User.objects.get(pk=pk)
+        timeout = 600 if request.user.id == pk else 300
+        cache.set(user_cache_key, cached_user, timeout=timeout)
+        return None
+
+    @staticmethod
+    def task_launching(request):
+        """
+        Preparing and launching a task
+        """
+        if avatar := request.FILES.get("avatar"):
+            file_to_byte = in_memory_uploaded_file_to_bytes(avatar)[0]
+            request.data["avatar"] = {
+                "byte": file_to_byte,
+                "name": avatar.name,
+                "content_type": "image/jpeg",
+            }
+        update_profile.delay(request.data, user_id=request.user.id)
 
 
 class UserLoginAPI(ObtainAuthToken):
@@ -101,11 +140,13 @@ class UserLoginAPI(ObtainAuthToken):
         """
         Handle user login
         """
+        # Create serializer class
         serializer = self.serializer_class(
             data=request.data,
             context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
+        # Data validation
         if user := serializer.validated_data.get("user"):
             logger.debug(user)
             response = Response(
@@ -115,6 +156,11 @@ class UserLoginAPI(ObtainAuthToken):
                     "id": user.id,
                 },
             )
+            # Adding user data in cache
+            user_data = User.objects.get(pk=user.id)
+            cache.set(f"user_{user.id}", user_data, timeout=600)
+            logger.debug(cache.get(f"user_{user.id}"))
+            # Adding the required tokens to cookies
             OperationForUserAuth.set_cookies(user, response)
             logger.debug("Token created")
             return response
@@ -138,26 +184,22 @@ class UserLogoutAPI(DestroyAPIView):
             status=status.HTTP_204_NO_CONTENT,
             data="Account logout executed",
         )
+        cache.delete("user")
         OperationForUserAuth.delete_cookie(response)
         return response
 
 
-class ValidatedDataAPI(APIView):
+class FavoritesManager(APIView):
     """
-    View for validated data
+    Manager for favorites ad user
     """
 
-    def post(self, request: HttpRequest, *args, **kwargs):
-        try:
-            ValidatorForRegistration.validate_field(list(request.POST.items())[0])
-            return Response(
-                data={"message": "Данные введенны корректно"},
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as e:
-            return Response(
-                data={
-                    "error": str(e),
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        ad_id = request.data.get("ad")
+        return adding_or_deleting_to_favorites(user, ad_id)
+
+    def get(self, request, *args, **kwargs):
+        return user_favorites_and_response(request)

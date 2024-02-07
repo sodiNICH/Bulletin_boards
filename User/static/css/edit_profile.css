@@ -1,0 +1,31 @@
+#user-avatar {
+    border-radius: 100px;
+    width: 200px;
+    height: 200px;
+}
+
+#form-edit {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+#avatarButton {
+    border-radius: 100px;
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+}
+
+#avatarButton:hover {
+    filter: grayscale(50%);
+}
+
+#avatarInput {
+    opacity: 0;
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+}
