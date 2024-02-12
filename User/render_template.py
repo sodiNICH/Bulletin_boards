@@ -78,3 +78,14 @@ class UserFavoriteTemplate(APIView):
             path_template = "User/favorites_list.html"
             return Response(template_name=path_template)
         return redirect(reverse("register-template"))
+
+
+@renderer_classes([TemplateHTMLRenderer])
+class UserSubscriptionsTemplate(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        if request.user.is_authenticated:
+            path_template = "User/subscriptions_list.html"
+            return Response(template_name=path_template)
+        return redirect(reverse("register-template"))

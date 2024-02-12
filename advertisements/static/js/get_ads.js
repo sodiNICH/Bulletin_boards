@@ -73,6 +73,7 @@ $(document).ready(function () {
 
                 // Создаем блок list-group для каждого объявления
                 var listGroup = $('<ul>').addClass('list-group list-group-flush');
+                var listItemTime = $("<li>").addClass("list-group-item time").text(`${ad.created_at}`)
                 var listItemPrice = $("<li>").addClass("list-group-item price").text(`${ad.price} ₽`)
                 var listItemCategory = $("<li>").addClass("list-group-item").text(`${ad.category} | ${ad.subcategory}`);
                 var listItemCondition = $("<li>").addClass("list-group-item").text(`${ad.condition}`);
@@ -87,7 +88,7 @@ $(document).ready(function () {
                         cardBody.append($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
                     }
                 };
-                listGroup.append(listItemPrice, listItemCategory, listItemCondition);
+                listGroup.append(listItemTime, listItemPrice, listItemCategory, listItemCondition);
 
                 // Добавляем list-group в card
                 card.append(listGroup, cardBody);

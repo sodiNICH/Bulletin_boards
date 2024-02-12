@@ -1,9 +1,15 @@
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.forms import model_to_dict
+
+from channels.layers import get_channel_layer
+
+from asgiref.sync import async_to_sync
 
 from config.minio_utils import MinIOFileManager
 from services.file_conversion import bytes_to_in_memory_uploaded_file
 from .models import Advertisements
+from notification.models import NotificationAdModels
 
 
 User = get_user_model()
@@ -20,7 +26,25 @@ def create_ad_task(data):
     ad = Advertisements.objects.create(**data)
     data["owner"].advertisements.add(ad)
 
+    ad_serializer = model_to_dict(ad)
+    seller = data["owner"]
+    sending_notification(seller=seller, ad=ad_serializer)
+
     print("Таска сработала")
+
+
+def sending_notification(seller, ad):
+    NotificationAdModels.objects.create(advertisement=ad, seller=seller)
+    for sub in seller.subscribers.all():
+        channel_layer = get_channel_layer()
+        name_group = f"user_{sub.id}"
+        async_to_sync(channel_layer.group_send)(
+            name_group,
+            {
+                "type": "send_message",
+                "message": ad,
+            },
+        )
 
 
 def upload_images(images_data):

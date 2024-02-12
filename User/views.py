@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
 from django.http import HttpRequest
 
 from rest_framework import permissions, status, mixins, viewsets
@@ -17,13 +16,25 @@ from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import DestroyAPIView
+from advertisements.models import Advertisements
 
 from services.file_conversion import in_memory_uploaded_file_to_bytes
 from .tasks import update_profile
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
 from .services.auth import OperationForUserAuth
-from .services.favorite_manager import adding_or_deleting_to_favorites, user_favorites_and_response
+from .services.favorite_manager import (
+    searching_ad,
+    addind_to_favorite,
+    deleting_to_favorite,
+    user_favorites_and_response,
+)
+from .services.subscriptions_manager import (
+    get_to_subscriptions,
+    searchig_seller,
+    addind_to_subscriptions,
+    deleting_to_subscriptions,
+)
 
 
 User = get_user_model()
@@ -189,17 +200,27 @@ class UserLogoutAPI(DestroyAPIView):
         return response
 
 
-class FavoritesManager(APIView):
-    """
-    Manager for favorites ad user
-    """
-
-    permission_classes = (permissions.IsAuthenticated,)
-
+class FavoriteAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        user = request.user
-        ad_id = request.data.get("ad")
-        return adding_or_deleting_to_favorites(user, ad_id)
+        user_and_ad: tuple[User, Advertisements] = searching_ad(request)
+        return addind_to_favorite(*user_and_ad)
+
+    def delete(self, request, *args, **kwargs):
+        user_and_ad: tuple[User, Advertisements] = searching_ad(request)
+        return deleting_to_favorite(*user_and_ad)
 
     def get(self, request, *args, **kwargs):
         return user_favorites_and_response(request)
+
+
+class SubscriptionsAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        user_seller: tuple[User, User] = searchig_seller(request)
+        return addind_to_subscriptions(*user_seller)
+
+    def delete(self, request, *args, **kwargs):
+        user_seller: tuple[User, User] = searchig_seller(request)
+        return deleting_to_subscriptions(*user_seller)
+
+    def get(self, request, *args, **kwargs):
+        return get_to_subscriptions(request)

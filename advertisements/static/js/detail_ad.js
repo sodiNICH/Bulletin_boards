@@ -13,12 +13,13 @@ $(document).ready(function () {
             var adImg = $("#ad-img");
 
             $("#title-ad").text(ad.title);
+            $("#created-at").text(ad.created_at);
 
             if (ad.in_fav != undefined) {
                 if (ad.in_fav) {
-                    $("#title-ad").after($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
+                    $("#created-at").after($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
                 } else {
-                    $("#title-ad").after($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
+                    $("#created-at").after($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
                 }
             };
 

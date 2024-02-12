@@ -93,9 +93,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "celery",
+    "channels",
     "rest_framework",
     "rest_framework_simplejwt",
     "minio_storage",
+    "notification",
     "advertisements",
     "User",
 ]
@@ -171,6 +173,17 @@ CACHES = {
         "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    },
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer', #'channels.layers.InMemoryChannelLayer'
+        'CONFIG': {
+            'hosts': [
+                (REDIS_HOST, REDIS_PORT)
+            ],
         },
     },
 }

@@ -2,6 +2,7 @@ var url = location.href;
 var match = url.match(/\/profile\/(\d+)\/$/);
 var id = match[1];
 console.log(id);
+// console.log($.cookie("user_id"))
 
 $(document).ready(function () {
     $.ajax({
@@ -13,6 +14,16 @@ $(document).ready(function () {
                 `<p id="description">${data.description}</p>`;
 
             $('#info-user').prepend(newHTML);
+
+            if ("in_subs" in data) {
+                var tagSubs = `<i class='bx bxs-user-plus button-subs' title="Подписаться" id='user-${data.id}' onclick='subscriptions(${data.id})'></i>`;
+                var tagUnsubs = `<i class='bx bxs-user-minus button-subs' title="Отписаться" id='user-${data.id}' onclick='subscriptions(${data.id})'></i>`;
+                if (data.in_subs) {
+                    $('#info-user').prepend(tagUnsubs);
+                } else {
+                    $('#info-user').prepend(tagSubs);
+                };
+            };
 
             if (data.avatar.length > 1) {
                 $("#info-user").prepend(`<img src="${data.avatar}" alt="${data.username}" id="user-avatar">`);
@@ -89,6 +100,7 @@ $(document).ready(function () {
 
                 // Создаем блок list-group для каждого объявления
                 var listGroup = $('<ul>').addClass('list-group list-group-flush');
+                var listItemTime = $("<li>").addClass("list-group-item time").text(`${ad.created_at}`)
                 var listItemPrice = $("<li>").addClass("list-group-item price").text(`${ad.price} ₽`)
                 var listItemCategory = $("<li>").addClass("list-group-item").text(`${ad.category} | ${ad.subcategory}`);
                 var listItemCondition = $("<li>").addClass("list-group-item").text(`${ad.condition}`);
@@ -101,7 +113,7 @@ $(document).ready(function () {
                 } else {
                     cardBody.append($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"'></i>`))
                 }
-                listGroup.append(listItemPrice, listItemCategory, listItemCondition);
+                listGroup.append(listItemTime, listItemPrice, listItemCategory, listItemCondition);
 
                 // Добавляем list-group в card
                 card.append(listGroup, cardBody);

@@ -3,6 +3,7 @@ Serializer for Ad
 """
 
 import logging
+from datetime import datetime, timezone
 
 from django.contrib.auth import get_user_model
 
@@ -23,7 +24,7 @@ class AdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisements
         fields = "__all__"
-        read_only_fields = ("created_at",)
+        # read_only_fields = ("created_at",)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -31,6 +32,9 @@ class AdSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = request.user
         data = {
+            "created_at": instance.created_at
+            .astimezone(timezone.utc)
+            .strftime("%d %B %Y г. %H:%M"),
             "owner": {
                 "id": owner.id,
                 "avatar": owner.avatar,

@@ -4,16 +4,19 @@ function favorites (id) {
     if (elem.classList.contains('bx-heart')) {
         elem.classList.remove('bx-heart');
         elem.classList.add('bxs-heart');
-        elem.title = 'Удалить из избранного'
+        elem.title = 'Удалить из избранного';
+        var method = "POST";
     } else {
         elem.classList.remove('bxs-heart');
         elem.classList.add('bx-heart');
-        elem.title = 'Добавить в избранное'
+        elem.title = 'Добавить в избранное';
+        var method = "DELETE";
     }
+    console.log(method);
 
     $.ajax({
         url: '/profile/user/favorites/api/',
-        method: 'POST',
+        method: method,
         datatype: 'json',
         data: {
             'ad': id,

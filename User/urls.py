@@ -45,6 +45,11 @@ urlpatterns = [
         render_template.UserFavoriteTemplate.as_view(),
         name="favorite-template",
     ),
+    path(
+        "subscriptions/",
+        render_template.UserSubscriptionsTemplate.as_view(),
+        name="subscriptions-template",
+    ),
     # API endpoints
     path(
         "",
@@ -52,8 +57,13 @@ urlpatterns = [
     ),
     path(
         "user/favorites/api/",
-        views.FavoritesManager.as_view(),
+        views.FavoriteAPIView.as_view(),
         name="favorites-manager",
+    ),
+    path(
+        "user/subscriptions/api/",
+        views.SubscriptionsAPIView.as_view(),
+        name="subscriptions-manager",
     ),
     path(
         "login/api/",

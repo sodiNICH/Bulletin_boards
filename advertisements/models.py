@@ -2,6 +2,8 @@
 Model for advertisements
 """
 
+from datetime import timezone
+
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django.contrib.postgres.fields import ArrayField

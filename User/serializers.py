@@ -3,6 +3,7 @@ Serilizer for API related User
 """
 
 import logging
+from datetime import timezone
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -51,11 +52,24 @@ class UserSerializer(serializers.ModelSerializer):
             "username": instance.username,
             "avatar": instance.avatar,
             "description": instance.description,
-            "ads": [
-                {**model_to_dict(ad), "in_fav": ad in instance.favorites.all()}
-                for ad in instance.advertisements.all()
-            ],
         }
+
+        user_request = self.context['request'].user
+        if instance != user_request:
+            data["in_subs"] = instance in user_request.subscriptions.all()
+
+        if ads := [
+            {
+                **model_to_dict(ad),
+                "in_fav": ad in instance.favorites.all(),
+                "created_at": ad.created_at.astimezone(timezone.utc).strftime(
+                    "%d %B %Y г. %H:%M"
+                ),
+            }
+            for ad in instance.advertisements.all()
+        ]:
+            data["ads"] = ads
+
         return data
 
     def create(self, validated_data):
