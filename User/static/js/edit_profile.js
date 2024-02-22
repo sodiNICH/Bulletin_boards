@@ -16,7 +16,7 @@ $(document).ready(function () {
         };
     });
     $.ajax({
-        url: `/profile/user/api/${id}/`,
+        url: `/profile/api/v1/user/${id}/`,
         type: "GET",
         success: function (response) {
             console.log(response);
@@ -34,7 +34,7 @@ $(document).ready(function () {
         var formData = new FormData(this);
         console.log(id);
         $.ajax({
-            url: `/profile/user/api/${id}/`,
+            url: `/profile/api/v1/user/${id}/`,
             type: 'PATCH',
             dataType: 'json',
             data: formData,

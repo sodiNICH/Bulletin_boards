@@ -14,7 +14,7 @@ function subscriptions (id) {
     console.log(method);
 
     $.ajax({
-        url: '/profile/user/subscriptions/api/',
+        url: '/profile/api/v1/subscriptions/',
         method: method,
         datatype: 'json',
         data: {

@@ -15,28 +15,7 @@ class CreateAdTemplate(APIView):
     """
 
     def get(self, request: HttpRequest, *args, **kwargs):
-        print(request.user.is_authenticated)
         if not request.user.is_authenticated:
             return redirect(reverse("register-template"))
         path_template = "advertisements/create_ad.html/"
-        return Response(template_name=path_template)
-
-
-class MainPageTemplate(APIView):
-    """
-    Register template renderer
-    """
-
-    def get(self, request: HttpRequest, *args, **kwargs):
-        path_template = "advertisements/main_page.html/"
-        return Response(template_name=path_template)
-
-
-class DetailAdTemplate(APIView):
-    """
-    Register template renderer
-    """
-
-    def get(self, request: HttpRequest, *args, **kwargs):
-        path_template = "advertisements/detail_ad.html/"
         return Response(template_name=path_template)

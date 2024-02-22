@@ -1,8 +1,13 @@
+var url = location.href;
+var category = url.match(/category\/(.+)/)[1];
+
 $(document).ready(function () {
     $.ajax({
-        url: "/api/v1/advert/",
+        url: `/api/v1/category/${category}`,
         type: "GET",
         success: function (response) {
+            console.log(response);
+            $("title").text(category.slice(0, -1));
             import('/static/js/overview_advert.js')
                 .then((module) => {
                     var getAdvert = module.getAdvert;
@@ -16,6 +21,9 @@ $(document).ready(function () {
                 .catch((error) => {
                     console.error('Failed to load login module:', error);
                 });
+        },
+        error: function (xhr) {
+            console.error(xhr);
         },
     });
 });

@@ -1,6 +1,6 @@
 function logout () {
     $.ajax({
-        url: `/profile/logout/api/`,
+        url: `/profile/api/v1/logout/`,
         method: 'DELETE',
         success: function (data) {
             console.log('Выход выполнен');

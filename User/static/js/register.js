@@ -26,7 +26,7 @@ $(document).ready(function () {
         };
 
         $.ajax({
-            url: '/profile/register/validated/api/',
+            url: '/profile/api/v1/register/validated/',
             method: 'POST',
             data: requestData,
             dataType: 'json',

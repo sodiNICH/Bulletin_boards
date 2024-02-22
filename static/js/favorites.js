@@ -1,6 +1,5 @@
 function favorites (id) {
     let elem = document.getElementById(`fav-${id}`);
-    console.log(12);
     if (elem.classList.contains('bx-heart')) {
         elem.classList.remove('bx-heart');
         elem.classList.add('bxs-heart');
@@ -15,7 +14,7 @@ function favorites (id) {
     console.log(method);
 
     $.ajax({
-        url: '/profile/user/favorites/api/',
+        url: '/profile/api/v1/favorites/',
         method: method,
         datatype: 'json',
         data: {

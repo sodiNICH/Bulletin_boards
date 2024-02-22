@@ -38,19 +38,14 @@ class TokenAuthMiddleware:
         access_token = request.COOKIES.get("access")
 
         if access_token:
-            logger.info("Tokens exist")
             if not self.check_token_validity(access_token):
-                logger.info("Token is no longer needed")
+                logger.warning("Token is no longer needed")
                 return self.delete_tokens(request)
 
             if self.token_expired(access_token):
-                logger.info("Token has expired")
                 return self.update_tokens_and_response(request)
 
             request.META["HTTP_AUTHORIZATION"] = f"Token {access_token}"
-            logger.info("Token added to the header")
-        else:
-            logger.info("Tokens auth not found")
         return self.get_response(request)
 
     @staticmethod
@@ -69,7 +64,6 @@ class TokenAuthMiddleware:
         try:
             expiration_time = decode(access_token, options={"verify_signature": False})["exp"]
             remaining_time = expiration_time - timezone.now().timestamp()
-            logger.info("Token validity period - %s", trunc(remaining_time))
             return trunc(remaining_time) <= 10
         except (DecodeError, KeyError):
             return False
@@ -95,7 +89,6 @@ class TokenAuthMiddleware:
         response = self.get_response(request)
         response.delete_cookie('access')
         response.delete_cookie('refresh')
-        logger.info("Tokens delete")
         return response
 
     def update_tokens_and_response(self, request):

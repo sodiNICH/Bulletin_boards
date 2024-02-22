@@ -8,9 +8,12 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import AbstractBaseUser
+
 from django.http import HttpRequest
 
 from rest_framework import permissions, status, mixins, viewsets
+from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
@@ -63,15 +66,13 @@ class UserViewSet(viewsets.ModelViewSet):
             "retrieve": (permissions.AllowAny,),
             "list": (permissions.IsAdminUser,),
             "create": (permissions.AllowAny,),
-            "update": (permissions.IsAuthenticated,),
-            "patrial_update": (permissions.IsAuthenticated,),
         }
         permissions_list = [
             permission() for permission in permission_classes.get(self.action, [])
         ]
         return permissions_list or super().get_permissions()
 
-    def create(self, request: HttpRequest, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         # Creating new user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -88,14 +89,14 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
         # Adding user data in cache
-        user_data = User.objects.get(pk=user.id)
+        user_data: AbstractBaseUser = User.objects.get(pk=user.id)
         cache.set(f"user_{user.id}", user_data, timeout=600)
         # Adding the required tokens to cookies
         OperationForUserAuth.set_cookies(user, response)
         logger.debug(request.COOKIES.get("access"))
         return response
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs) -> Response:
         return self.caching_user(kwargs["pk"], request) or super().retrieve(
             request, *args, **kwargs
         )
@@ -116,27 +117,26 @@ class UserViewSet(viewsets.ModelViewSet):
         Checking user for caching
         """
         user_cache_key = f"user_{pk}"
-        cached_user = cache.get(user_cache_key)
 
         if cached_user := cache.get(user_cache_key):
             serializer = self.get_serializer(cached_user)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        cached_user = User.objects.get(pk=pk)
+        cached_user: AbstractBaseUser = User.objects.get(pk=pk)
         timeout = 600 if request.user.id == pk else 300
         cache.set(user_cache_key, cached_user, timeout=timeout)
         return None
 
     @staticmethod
-    def task_launching(request):
+    def task_launching(request) -> None:
         """
         Preparing and launching a task
         """
         if avatar := request.FILES.get("avatar"):
-            file_to_byte = in_memory_uploaded_file_to_bytes(avatar)[0]
+            file_to_byte: tuple[bytes, str] = in_memory_uploaded_file_to_bytes(avatar)
             request.data["avatar"] = {
-                "byte": file_to_byte,
-                "name": avatar.name,
+                "byte": file_to_byte[0],
+                "name": file_to_byte[1],
                 "content_type": "image/jpeg",
             }
         update_profile.delay(request.data, user_id=request.user.id)
@@ -168,7 +168,7 @@ class UserLoginAPI(ObtainAuthToken):
                 },
             )
             # Adding user data in cache
-            user_data = User.objects.get(pk=user.id)
+            user_data: AbstractBaseUser = User.objects.get(pk=user.id)
             cache.set(f"user_{user.id}", user_data, timeout=600)
             logger.debug(cache.get(f"user_{user.id}"))
             # Adding the required tokens to cookies

@@ -2,7 +2,7 @@ $(document).ready(function () {
     $('#login-form').submit(function (event) {
         event.preventDefault();
         $.ajax({
-            url: "/profile/login/api/",
+            url: "/profile/api/v1/login/",
             type: 'POST',
             data: $(this).serialize(),
             success: function (data) {
