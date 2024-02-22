@@ -29,6 +29,16 @@ class User(AbstractUser):
         max_length=200,
         default="",
     )
+    subscriptions = models.ManyToManyField(
+        "User.User",
+        blank=True,
+        related_name="subscriptions_to"
+    )
+    subscribers = models.ManyToManyField(
+        "User.User",
+        blank=True,
+        related_name="subscribers_to"
+    )
     favorites = models.ManyToManyField(
         "advertisements.Advertisements",
         blank=True,

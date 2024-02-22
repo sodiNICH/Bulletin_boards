@@ -3,6 +3,7 @@ Serializer for Ad
 """
 
 import logging
+from datetime import timezone
 
 from django.contrib.auth import get_user_model
 
@@ -20,10 +21,18 @@ class AdSerializer(serializers.ModelSerializer):
     Serializer for Ad
     """
 
+    category_display = serializers.CharField(source="get_category_display")
+    subcategory_display = serializers.CharField(source="get_subcategory_display")
+    condition = serializers.CharField(source="get_condition_display")
+    created_at = serializers.DateTimeField(
+        default_timezone=timezone.utc, format="%d %B %Y г. %H:%M"
+    )
+
+
     class Meta:
         model = Advertisements
         fields = "__all__"
-        read_only_fields = ("created_at",)
+        # read_only_fields = ("created_at",)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

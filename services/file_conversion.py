@@ -3,9 +3,9 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 def in_memory_uploaded_file_to_bytes(file):
-    file_name = file.name
+    file_name: str = file.name
     file.seek(0)
-    file_data = file.read()
+    file_data: bytes = file.read()
     return file_data, file_name
 
 

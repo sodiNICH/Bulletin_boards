@@ -3,14 +3,13 @@ $(document).ready(function () {
         event.preventDefault();
         var formData = new FormData(this);
         $.ajax({
-            url: '/ad/api/',
+            url: '/api/v1/ad/',
             method: 'POST',
             dataType: 'json',
             data: formData,
             processData: false,
             contentType: false,
-            success: function (response) {
-                console.log(response.message);
+            success: function (response, textStatus, xhr) {
                 window.location.href = "";
             },
             error: function (xhr) {
