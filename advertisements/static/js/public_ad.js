@@ -3,7 +3,7 @@ $(document).ready(function () {
         event.preventDefault();
         var formData = new FormData(this);
         $.ajax({
-            url: '/api/v1/ad/',
+            url: '/api/v1/advert/',
             method: 'POST',
             dataType: 'json',
             data: formData,

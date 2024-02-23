@@ -40,5 +40,6 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path("", include("advertisements.urls")),
     path("profile/", include("User.urls")),
+    path("chat/", include("chat.urls")),
     path("media/<str:name>/", ImagePreviewFromMinIO.as_view()),
 ]

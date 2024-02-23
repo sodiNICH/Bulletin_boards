@@ -69,6 +69,11 @@ class UserProfileTemplate(BaseTemplateView):
 
 
 class UserFavoriteTemplate(BaseTemplateView):
+    """
+    Favorites list advert template
+    """
+    permission_classes = (IsAuthenticated,)
+
     def get_template(self):
         return "User/favorites_list.html"
 

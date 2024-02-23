@@ -7,16 +7,17 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
 class User(AbstractUser):
-    '''
-        DB USER
-    '''
+    """
+    DB USER
+    """
+
     groups = models.ManyToManyField(
         Group,
         related_name="user_group",
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='user_permission',
+        related_name="user_permission",
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -30,31 +31,23 @@ class User(AbstractUser):
         default="",
     )
     subscriptions = models.ManyToManyField(
-        "User.User",
-        blank=True,
-        related_name="subscriptions_to"
+        "User.User", blank=True, related_name="subscriptions_to"
     )
     subscribers = models.ManyToManyField(
-        "User.User",
-        blank=True,
-        related_name="subscribers_to"
+        "User.User", blank=True, related_name="subscribers_to"
     )
     favorites = models.ManyToManyField(
-        "advertisements.Advertisements",
-        blank=True,
-        related_name="Favorites"
+        "advertisements.Advertisements", blank=True, related_name="Favorites"
     )
     advertisements = models.ManyToManyField(
-        "advertisements.Advertisements",
-        blank=True,
-        related_name="Advertisements"
+        "advertisements.Advertisements", blank=True, related_name="Advertisements"
     )
+    chats = models.ManyToManyField("chat.Chat", blank=True)
 
     def __str__(self) -> str:
         return f"{self.pk} {self.username}"
 
     class Meta:
-        ordering = ('created_at', )
-        verbose_name = 'пользователя'
-        verbose_name_plural = 'Пользователи'
-    
+        ordering = ("created_at",)
+        verbose_name = "пользователя"
+        verbose_name_plural = "Пользователи"

@@ -13,7 +13,6 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.http import HttpRequest
 
 from rest_framework import permissions, status, mixins, viewsets
-from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
@@ -201,6 +200,8 @@ class UserLogoutAPI(DestroyAPIView):
 
 
 class FavoriteAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
     def post(self, request, *args, **kwargs):
         user_and_ad: tuple[User, Advertisements] = searching_ad(request)
         return addind_to_favorite(*user_and_ad)

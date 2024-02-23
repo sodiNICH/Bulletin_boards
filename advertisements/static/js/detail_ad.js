@@ -87,6 +87,8 @@ $(document).ready(function () {
             var header = $("<h2>");
             header.append($("<a>").text(ad.owner.username).attr("id", "owner-username").attr("href", `/profile/${ad.owner.id}`).attr("target", "_blank"));
             ownerInfo.append(header);
+            var sendMessage = $("<button>").attr("id", "send-message").addClass("btn btn-primary").text("Написать сообщение");
+            ownerInfo.append(sendMessage);
 
             import('/static/js/overview_advert.js')
                 .then((module) => {

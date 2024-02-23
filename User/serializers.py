@@ -8,7 +8,6 @@ from datetime import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.forms import ValidationError
-from django.forms.models import model_to_dict
 
 from advertisements.serializers import AdSerializer
 from .validators import ValidatorForRegistration

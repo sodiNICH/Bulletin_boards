@@ -6,7 +6,7 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from django.http import HttpRequest
+from django.http import Http404, HttpRequest
 from django.db.models import Q
 
 from rest_framework import viewsets, permissions, mixins, status
@@ -46,6 +46,17 @@ class AdViewSet(viewsets.ModelViewSet):
                 "message": "Ad published",
             },
             status=status.HTTP_200_OK,
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        ad_id: int | None = kwargs.get("id")
+        ad: Advertisements | Http404 = get_object_or_404(Advertisements, pk=ad_id)
+
+        if ad in request.user.advertisements.all():
+            return super().destroy(request, *args, **kwargs)
+        return Response(
+            data={"message": "You can't delete someone else's ad!"},
+            status=status.HTTP_204_NO_CONTENT,
         )
 
     def retrieve(self, request, *args, **kwargs):

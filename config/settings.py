@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "drf_yasg",
 
     "notification",
+    "chat",
     "advertisements",
     "User",
 ]

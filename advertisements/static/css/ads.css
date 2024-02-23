@@ -33,6 +33,20 @@
     max-width: 1200px; /* Максимальная ширина контейнера */
 }
 
+#similar-ads {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin: 0 auto; /* Центрируем контейнер на странице */
+    max-width: 1200px; /* Максимальная ширина контейнера */
+}
+
+#similar-ads-h3 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
 .card {
     width: calc(33.33% - 20px);
     /* 33.33% ширины, минус отступы */
