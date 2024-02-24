@@ -26,7 +26,7 @@ def update_profile(request_data, user_id):
     logger.debug("Таска сработала")
 
 
-def prepare_data(request_data):
+def prepare_data(request_data) -> UserProfileUpdate:
     """
     Preparing data for profile update
     """

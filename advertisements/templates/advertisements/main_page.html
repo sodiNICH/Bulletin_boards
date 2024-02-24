@@ -37,7 +37,7 @@
         <script src="/static/js/user_data_nav.js/"></script>
         <script>
             $(document).ready(function () {
-                let urlNewNot = `ws://${window.location.host}/ws/notifications/subscriptions/`;
+                let urlNewNot = `ws://${window.location.host}/ws/chat/`;
                 const notificationSocket = new WebSocket(urlNewNot);
 
                 notificationSocket.onopen = function () {
@@ -47,7 +47,6 @@
                 notificationSocket.onmessage = function (event) {
                     console.log(JSON.parse(event.data));
                 };
-
             });
         </script>
 </body>

@@ -13,4 +13,10 @@ class ChatAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ("id", "chat", "text", "created_at")
+    list_display = (
+        "id",
+        "owner",
+        "chat",
+        "text",
+        "created_at",
+    )

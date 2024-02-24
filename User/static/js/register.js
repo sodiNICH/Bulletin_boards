@@ -60,7 +60,7 @@ $(document).ready(function () {
         };
 
         $.ajax({
-            url: '/profile/register/validated/api/',
+            url: '/profile/api/v1/register/validated/',
             method: 'POST',
             data: requestData,
             dataType: 'json',
@@ -100,7 +100,7 @@ $(document).ready(function () {
         console.log(form)
 
         $.ajax({
-            url: "/profile/user/api/",
+            url: "/profile/api/v1/user/",
             type: "POST",
             dataType: 'json',
             data: JSON.stringify(form),

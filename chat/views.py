@@ -3,7 +3,6 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 
 from .models import Chat, Message
 from .serializers import (
-    ChatListSerializer,
     ChatCreateSerializer,
     ChatMessageSerializer,
     ChatDetailSerializer,
@@ -12,7 +11,7 @@ from .serializers import (
 
 class ChatsListAPIView(generics.ListAPIView):
     queryset = Chat.objects.all()
-    serializer_class = ChatListSerializer
+    serializer_class = ChatDetailSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
 

@@ -28,7 +28,7 @@ class Message(models.Model):
         max_length=200, validators=[MinLengthValidator(limit_value=1)], blank=False
     )
     images = ArrayField(
-        models.URLField(
+        models.TextField(
             max_length=500,
         ),
         blank=True,

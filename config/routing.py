@@ -10,7 +10,7 @@ websocket_urlpatterns = [
         NotificationConsumer.as_asgi(),
     ),
     re_path(
-        r"ws/chat/(?P<chat_id>\d/",
+        r"ws/chat/(?P<chat_id>\d+)/$",
         ChatConsumer.as_asgi(),
     ),
 ]

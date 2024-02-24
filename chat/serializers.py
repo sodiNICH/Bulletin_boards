@@ -1,13 +1,21 @@
+import logging
+from datetime import timezone
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from collections import OrderedDict
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractBaseUser
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from config.minio_utils import MinIOFileManager
 from .models import Chat, Message
+from .validators import validate_for_create_chat
 
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class ChatCreateSerializer(serializers.ModelSerializer):
@@ -22,86 +30,100 @@ class ChatCreateSerializer(serializers.ModelSerializer):
         return chat_object
 
     def validate(self, attrs):
-        companions = attrs.get("companions", [])
-        existing_chat = Chat.objects.filter(companions__in=companions).distinct()
-        if existing_chat.exists():
-            raise serializers.ValidationError(
-                "Chat with these companions already exists."
-            )
-
-        user = self.context["request"].user
-        if user not in companions:
-            raise serializers.ValidationError(
-                "You can't create a chat room for unauthorized people"
-            )
-
-        companions.remove(user)
-        advert = attrs.get("advertisement")
-        if advert not in companions[0].advertisements.all():
-            raise serializers.ValidationError(
-                f"None of the users owns the ad - {advert}"
-            )
-        companions.append(user)
+        user: AbstractBaseUser = self.context["request"].user
+        validate_for_create_chat(attrs, user)
         return attrs
 
 
 class ChatDetailSerializer(serializers.ModelSerializer):
-    advert = serializers.SerializerMethodField()
-    messages = serializers.SerializerMethodField()
-
     class Meta:
         model = Chat
-        fields = ("id", "advert", "messages")
-
-    def get_advert(self, obj):
-        advert = obj.advertisement
-        return {"title": advert.title, "images": advert.images[0]}
-
-    def get_messages(self, obj):
-        messages = obj.messages.all()
-        if messages:
-            return ChatMessageSerializer(messages, many=True).data
-        return []
-
-
-class ChatListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chat
-        fields = "__all__"
+        fields = ("id", "advertisement", "messages")
 
     def to_representation(self, instance):
         user = self.context["request"].user
-        chats = user.chats.all()
-        serializer_chats = ChatDetailSerializer(chats, many=True).data
-        return serializer_chats
+        if instance in user.chats.all():
+            logger.debug(user.chats.all())
+            advert_obj = instance.advertisement
+            messages = instance.messages.all()
+            data = {
+                "id": instance.id,
+                "advert": {
+                    "id": advert_obj.id,
+                    "title": advert_obj.title,
+                    "images": advert_obj.images[0],
+                },
+                "messages": ChatMessageSerializer(messages, many=True).data
+                if messages
+                else None,
+            }
+            return OrderedDict(data)
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
+        # exclude = ("images",)
         fields = "__all__"
 
     def create(self, validated_data):
         chat = validated_data["chat"]
         message = super().create(validated_data)
         chat.messages.add(message)
+
+        user = self.context["request"].user
+        companions = chat.companions
+        logger.debug(companions)
+        companions.remove(user)
+
+        chats_companion = companions.all()[0].chats
+        if chat not in chats_companion.all():
+            chats_companion.add(chat)
+        companions.add(user)
+
+        channel_layer = get_channel_layer()
+        name_group = f"chat_{chat.id}"
+        async_to_sync(channel_layer.group_send)(
+            name_group,
+            {
+                "type": "send_message_chat",
+                "message": self.to_representation(message),
+            }
+        )
         return message
+
+    def to_internal_value(self, data):
+        logger.debug(data)
+        images = data.getlist("images")
+        owner = data.get("owner")
+
+        if images:
+            images_urls = []
+            for image in images:
+                file_name = f"{owner}-{image.name}"
+                MinIOFileManager.upload_to_minio(image, f"{owner}-{image.name}")
+                images_urls.append(f"/media/{file_name}/")
+            data.setlist("images", images_urls)
+        return super().to_internal_value(data)
 
     def validate(self, attrs):
         chat: Chat = attrs.get("chat")
         owner: User = attrs.get("owner")
+        print(attrs.get("images"))
         if chat and owner:
             if owner not in chat.companions.all():
-                raise ValidationError(f'The user {owner} is not in this chat room')
+                raise ValidationError(f"The user {owner} is not in this chat room")
         return super().validate(attrs)
 
     def to_representation(self, instance):
         data = OrderedDict(
             {
+                "id": instance.owner.id,
                 "avatar": instance.owner.avatar,
                 "username": instance.owner.username,
                 "text": instance.text,
-                "created_at": instance.created_at,
+                "images": instance.images,
+                "created_at": instance.created_at.strftime("%d %B %Y г. %H:%M"),
             }
         )
         return data

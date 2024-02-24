@@ -1,0 +1,16 @@
+#block-chat {
+    border: 1px solid black; /* Устанавливаем границу толщиной 1 пиксель, черного цвета */
+    padding: 5px; /* Добавляем небольшой отступ вокруг содержимого span */
+    display: inline-block; /* Позволяет span занимать только необходимое пространство */
+    width: 500px;
+}
+
+#img-advert-chat {
+    width: 100px;
+    border-radius: 100px;
+}
+
+#avatar-chat {
+    width: 50px;
+    border-radius: 100px;
+}

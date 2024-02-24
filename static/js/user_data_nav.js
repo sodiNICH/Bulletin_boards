@@ -4,7 +4,7 @@ $(document).ready(function () {
                     <img src="/static/img/logo_boards.png" alt="Main Page" id="mainpage-img">
                 </a>
                 <a href="/profile/favorites/" class="links"><i class='bx bxs-heart' style="color: red"></i> Избранные</a>
-                <a href="#" class="links"><i class='bx bxs-conversation'></i> Чат</a>
+                <a href="/chat/" class="links"><i class='bx bxs-conversation'></i> Чат</a>
                 <button type="button" class="btn btn-primary notification">
                     <i class='bx bx-bell'></i> <span class="badge text-bg-secondary"></span>
                 </button>

@@ -49,7 +49,8 @@ class AdViewSet(viewsets.ModelViewSet):
         )
 
     def destroy(self, request, *args, **kwargs):
-        ad_id: int | None = kwargs.get("id")
+        ad_id: int | None = kwargs.get("pk")
+        logger.debug(ad_id)
         ad: Advertisements | Http404 = get_object_or_404(Advertisements, pk=ad_id)
 
         if ad in request.user.advertisements.all():

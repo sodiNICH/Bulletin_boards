@@ -24,7 +24,7 @@ from services.file_conversion import in_memory_uploaded_file_to_bytes
 from .tasks import update_profile
 from .serializers import UserSerializer
 from .permissions import IsOwnerOrReadOnly
-from .services.auth import OperationForUserAuth
+from .services.auth import OperationForUser
 from .services.favorite_manager import (
     searching_ad,
     addind_to_favorite,
@@ -91,12 +91,12 @@ class UserViewSet(viewsets.ModelViewSet):
         user_data: AbstractBaseUser = User.objects.get(pk=user.id)
         cache.set(f"user_{user.id}", user_data, timeout=600)
         # Adding the required tokens to cookies
-        OperationForUserAuth.set_cookies(user, response)
+        OperationForUser.set_cookies(user, response)
         logger.debug(request.COOKIES.get("access"))
         return response
 
     def retrieve(self, request, *args, **kwargs) -> Response:
-        return self.caching_user(kwargs["pk"], request) or super().retrieve(
+        return OperationForUser.caching_user(kwargs["pk"], request) or super().retrieve(
             request, *args, **kwargs
         )
 
@@ -110,21 +110,6 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         logger.debug("Response отправлен")
         return response
-
-    def caching_user(self, pk, request) -> Response | None:
-        """
-        Checking user for caching
-        """
-        user_cache_key = f"user_{pk}"
-
-        if cached_user := cache.get(user_cache_key):
-            serializer = self.get_serializer(cached_user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        cached_user: AbstractBaseUser = User.objects.get(pk=pk)
-        timeout = 600 if request.user.id == pk else 300
-        cache.set(user_cache_key, cached_user, timeout=timeout)
-        return None
 
     @staticmethod
     def task_launching(request) -> None:
@@ -171,7 +156,7 @@ class UserLoginAPI(ObtainAuthToken):
             cache.set(f"user_{user.id}", user_data, timeout=600)
             logger.debug(cache.get(f"user_{user.id}"))
             # Adding the required tokens to cookies
-            OperationForUserAuth.set_cookies(user, response)
+            OperationForUser.set_cookies(user, response)
             logger.debug("Token created")
             return response
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -195,7 +180,7 @@ class UserLogoutAPI(DestroyAPIView):
             data="Account logout executed",
         )
         cache.delete("user")
-        OperationForUserAuth.delete_cookie(response)
+        OperationForUser.delete_cookie(response)
         return response
 
 
