@@ -8,8 +8,8 @@ $(document).ready(function () {
         url: `/api/v1/advert/${id}/`,
         type: "GET",
         success: function (ad) {
-            console.log(ad);
             $("title").text(ad.title);
+            var adId = ad.id;
             var adImg = $("#ad-img");
 
             $("#title-ad").text(ad.title);
@@ -17,14 +17,14 @@ $(document).ready(function () {
 
             if (ad.in_fav != undefined) {
                 if (ad.in_fav) {
-                    $("#created-at").after($(`<i class='bx bxs-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
+                    $("#created-at").after($(`<i class='bx bxs-heart favorites-button' id='fav-${adId}' onclick="favorites(${adId})"></i>`))
                 } else {
-                    $("#created-at").after($(`<i class='bx bx-heart favorites-button' id='fav-${ad.id}' onclick="favorites(${ad.id})"></i>`))
+                    $("#created-at").after($(`<i class='bx bx-heart favorites-button' id='fav-${adId}' onclick="favorites(${adId})"></i>`))
                 }
             };
 
             var card = $('<div>').addClass('card').css('width', '18rem');
-            var carousel = $('<div>').addClass('carousel slide').attr('id', `carouselExampleIndicators${ad.id}`);
+            var carousel = $('<div>').addClass('carousel slide').attr('id', `carouselExampleIndicators${adId}`);
             var indicators = $('<div>').addClass('carousel-indicators');
             var carousel_inner = $('<div>').addClass('carousel-inner');
 
@@ -40,7 +40,7 @@ $(document).ready(function () {
             for (let j = 0; j < img.length; j++) {
                 var button = $('<button>').attr({
                     'type': 'button',
-                    'data-bs-target': `#carouselExampleIndicators${ad.id}`,
+                    'data-bs-target': `#carouselExampleIndicators${adId}`,
                     'data-bs-slide-to': j,
                     'aria-label': 'Slide ' + (j + 1)
                 });
@@ -60,7 +60,7 @@ $(document).ready(function () {
             // Добавляем кнопки управления в carousel
             var prevButton = $('<button>').addClass('carousel-control-prev').attr({
                 'type': 'button',
-                'data-bs-target': `#carouselExampleIndicators${ad.id}`,
+                'data-bs-target': `#carouselExampleIndicators${adId}`,
                 'data-bs-slide': 'prev'
             });
             prevButton.append($('<span>').addClass('carousel-control-prev-icon').attr('aria-hidden', 'true'));
@@ -68,7 +68,7 @@ $(document).ready(function () {
 
             var nextButton = $('<button>').addClass('carousel-control-next').attr({
                 'type': 'button',
-                'data-bs-target': `#carouselExampleIndicators${ad.id}`,
+                'data-bs-target': `#carouselExampleIndicators${adId}`,
                 'data-bs-slide': 'next'
             });
             nextButton.append($('<span>').addClass('carousel-control-next-icon').attr('aria-hidden', 'true'));
@@ -85,9 +85,12 @@ $(document).ready(function () {
             var ownerInfo = $("#owner-info");
             ownerInfo.append($("<img>").attr("src", ad.owner.avatar).attr("id", "owner-avatar"));
             var header = $("<h2>");
-            header.append($("<a>").text(ad.owner.username).attr("id", "owner-username").attr("href", `/profile/${ad.owner.id}`).attr("target", "_blank"));
+            var adOwnerId = ad.owner.id;
+            header.append($("<a>").text(ad.owner.username).attr("id", "owner-username").attr("href", `/profile/${adOwnerId}`).attr("target", "_blank"));
             ownerInfo.append(header);
-            var sendMessage = $("<button>").attr("id", "send-message").addClass("btn btn-primary").text("Написать сообщение");
+            if (!ad.typing && adOwnerId != $.cookie("user_id")) {
+                var sendMessage = $("<button>").attr("id", "send-message").addClass("btn btn-primary").attr("onclick", `createChat(${adId}, ${adOwnerId})`).text("Написать сообщение");
+            }
             ownerInfo.append(sendMessage);
 
             import('/static/js/overview_advert.js')

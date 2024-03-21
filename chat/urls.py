@@ -1,15 +1,26 @@
-from django.urls import path
+from django.urls import include, path
+
+from rest_framework import routers
 
 from . import views, render_templates
 
+
+router = routers.DefaultRouter()
+router.register(
+    r"api/v1",
+    views.ChatViewSet,
+    basename="chat-api"
+)
+router.register(
+    r"message/api/v1",
+    views.MessageViewSet,
+    basename="message-chat-api",
+)
 
 urlpatterns = [
     # Template endpoints
     path("", render_templates.ListChatsTemplate.as_view(), name="list-chats-template"),
     path("<int:pk>/", render_templates.DetailChatTemplate.as_view(), name="detail-chat-template"),
     # API endpoints
-    path("api/v1/list/", views.ChatsListAPIView.as_view(), name="list-chats"),
-    path("api/v1/create/", views.ChatCreateAPIView.as_view(), name="create-chat"),
-    path("api/v1/<int:pk>/", views.ChatDetailAPIView.as_view(), name="detail-chat"),
-    path("api/v1/message/create/", views.CreateMessageChatAPIView.as_view(), name="create-message"),
+    path("", include(router.urls)),
 ]

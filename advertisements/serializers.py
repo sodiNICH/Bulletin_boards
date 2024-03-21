@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
+from chat.models import Chat
 from .models import Advertisements
 
 
@@ -39,6 +40,11 @@ class AdSerializer(serializers.ModelSerializer):
         owner = instance.owner
         request = self.context.get("request")
         user = request.user
+
+        companions_chat = [user.id, instance.owner.id]
+        existing_chat = Chat.objects.filter(
+            companions__in=companions_chat, advertisement_id=instance.id
+        )
         data = {
             "owner": {
                 "id": owner.id,
@@ -46,6 +52,7 @@ class AdSerializer(serializers.ModelSerializer):
                 "username": owner.username,
             },
             "url": f"/ad/{instance.id}/",
+            "typing": len(existing_chat) > 1,
             "in_fav": instance in user.favorites.all()
             if user.is_authenticated
             else None,

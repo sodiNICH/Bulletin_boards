@@ -1,22 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <link rel="stylesheet" href="/static/css/navbar.css/">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/detail_chats.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <script src="/static/js/detail_chat.js"></script>
+    <script src="/static/js/delete_message.js/"></script>
+    <script src="/static/js/user_data_nav.js/"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <title>Мессенджер</title>
+    <style>
+        /* Стили для затемнения фона */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+        }
+
+        /* Стили для изображения в режиме просмотра на весь экран */
+        .full-screen-image {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        /* Стили для изображения внутри блока full-screen-image */
+        .full-screen-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        /* Стили для кнопки закрыть */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 20px;
+            z-index: 10001;
+        }
+    </style>
 </head>
+
 <body>
     <div id="all-messages">
-
     </div>
+    <span id="typing">
+    </span>
     <form id="message-form">
         <input type="text" id="message-input" placeholder="Введите сообщение">
+        <input type="file" id="images-message" name="images" multiple accept="image/*">
         <button type="submit">Отправить</button>
     </form>
+    <!-- Оверлей -->
+    <div class="overlay"></div>
+
+    <!-- Изображение на полный экран -->
+    <!-- <div class="full-screen-image">
+        <img src="" alt="Изображение">
+        <span class="close-btn">&times;</span>
+    </div> -->
+
+    <script>
+        // При нажатии на изображение
+        function fullImage(image) {
+            console.log(image);
+            var imgSrc = image.src;
+            var overlay = $(".overlay");
+            overlay.after(`
+                <div class="full-screen-image">
+                    <img src="${imgSrc}" alt="Изображение">
+                    <span class="close-btn">&times;</span>
+                </div>
+            `);
+            $('.overlay').fadeIn(); // Показываем оверлей
+            $('.full-screen-image').fadeIn(); // Показываем изображение на полный экран
+
+            // При нажатии на кнопку закрыть
+            $('.close-btn').click(function () {
+                $('.overlay').fadeOut();
+                $('.full-screen-image').fadeOut();
+                $(".full-screen-image").remove();
+            });
+
+            // Закрыть изображение при клике на оверлей
+            $('.full-screen-image').click(function () {
+                $('.overlay').fadeOut();
+                $('.full-screen-image').fadeOut();
+                $(".full-screen-image").remove();
+            });
+        };
+
+    </script>
 </body>
+
 </html>

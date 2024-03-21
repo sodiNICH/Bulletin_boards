@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser
+from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -73,7 +74,7 @@ class OperationForUser:
             serializer = UserSerializer(cached_user, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        cached_user: AbstractBaseUser = User.objects.get(pk=pk)
+        cached_user: AbstractBaseUser = get_object_or_404(User, pk=pk)
         timeout = 600 if request.user.id == pk else 300
         cache.set(user_cache_key, cached_user, timeout=timeout)
         return None

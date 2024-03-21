@@ -22,6 +22,7 @@ class BaseTemplateView(APIView):
         raise NotImplementedError("Subclasses must implement get_template method.")
 
     def get(self, request, *args, **kwargs):
+        logger.debug(request.META.get("REMOTE_ADDR"))
         path_template = self.get_template()
         return Response(template_name=path_template)
 

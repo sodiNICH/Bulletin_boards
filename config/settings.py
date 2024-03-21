@@ -71,6 +71,10 @@ LOGGING = {
             "handlers": ["applogfile", "console"],
             "level": "DEBUG",
         },
+        "search": {
+            "handlers": ["applogfile", "console"],
+            "level": "DEBUG",
+        },
     },
 }
 
@@ -88,11 +92,9 @@ INSTALLED_APPS = [
     "minio_storage",
     "celery",
     "channels",
-
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
-
     "notification",
     "chat",
     "advertisements",

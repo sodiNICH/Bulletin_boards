@@ -41,5 +41,6 @@ urlpatterns = [
     path("", include("advertisements.urls")),
     path("profile/", include("User.urls")),
     path("chat/", include("chat.urls")),
+    path("search/", include("search.urls")),
     path("media/<str:name>/", ImagePreviewFromMinIO.as_view()),
 ]

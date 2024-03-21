@@ -34,21 +34,21 @@
     <div id="all-ads">
     </div>
 
-        <script src="/static/js/user_data_nav.js/"></script>
-        <script>
-            $(document).ready(function () {
-                let urlNewNot = `ws://${window.location.host}/ws/chat/`;
-                const notificationSocket = new WebSocket(urlNewNot);
+    <script src="/static/js/user_data_nav.js/"></script>
+    <script>
+        $(document).ready(function () {
+            let urlNewNot = `ws://${window.location.host}/ws/notifications/subscriptions/`;
+            const notificationSocket = new WebSocket(urlNewNot);
 
-                notificationSocket.onopen = function () {
-                    console.log("Соединение установлено")
-                };
+            notificationSocket.onopen = function () {
+                console.log("Соединение установлено")
+            };
 
-                notificationSocket.onmessage = function (event) {
-                    console.log(JSON.parse(event.data));
-                };
-            });
-        </script>
+            notificationSocket.onmessage = function (event) {
+                console.log(JSON.parse(event.data));
+            };
+        });
+    </script>
 </body>
 
 </html>

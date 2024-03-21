@@ -1,7 +1,4 @@
 import logging
-from datetime import timezone
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from collections import OrderedDict
 
 from django.contrib.auth import get_user_model
@@ -12,40 +9,25 @@ from rest_framework.exceptions import ValidationError
 from config.minio_utils import MinIOFileManager
 from .models import Chat, Message
 from .validators import validate_for_create_chat
+from .tasks import update_chat_list_via_websocket, update_detail_chat_via_websocket
 
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class ChatCreateSerializer(serializers.ModelSerializer):
+class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = "__all__"
 
-    def create(self, validated_data):
-        user = self.context["request"].user
-        chat_object = super().create(validated_data)
-        user.chats.add(chat_object)
-        return chat_object
-
-    def validate(self, attrs):
-        user: AbstractBaseUser = self.context["request"].user
-        validate_for_create_chat(attrs, user)
-        return attrs
-
-
-class ChatDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chat
-        fields = ("id", "advertisement", "messages")
-
     def to_representation(self, instance):
+        logger.debug(self.context)
         user = self.context["request"].user
         if instance in user.chats.all():
             logger.debug(user.chats.all())
             advert_obj = instance.advertisement
-            messages = instance.messages.all()
+            messages = instance.messages.all().order_by("created_at")
             data = {
                 "id": instance.id,
                 "advert": {
@@ -57,49 +39,58 @@ class ChatDetailSerializer(serializers.ModelSerializer):
                 if messages
                 else None,
             }
-            return OrderedDict(data)
+            logger.debug(data)
+            return data
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        chat_object = super().create(validated_data)
+        user.chats.add(chat_object)
+        return chat_object
+
+    def validate(self, attrs):
+        logger.debug(attrs)
+        user: AbstractBaseUser = self.context["request"].user
+        validate_for_create_chat(attrs, user)
+        return attrs
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        # exclude = ("images",)
         fields = "__all__"
 
     def create(self, validated_data):
+        request = self.context["request"]
         chat = validated_data["chat"]
         message = super().create(validated_data)
         chat.messages.add(message)
 
         user = self.context["request"].user
-        companions = chat.companions
-        logger.debug(companions)
-        companions.remove(user)
 
-        chats_companion = companions.all()[0].chats
+        companions = chat.companions
+        companions.remove(user)
+        companion = companions.all()[0]
+        chats_companion = companion.chats
         if chat not in chats_companion.all():
             chats_companion.add(chat)
+            name_group = f"chat_list_{companion.id}"
+            update_chat_list_via_websocket.delay(name_group, ChatSerializer(chat, context={"request": request}).data)
         companions.add(user)
-
-        channel_layer = get_channel_layer()
         name_group = f"chat_{chat.id}"
-        async_to_sync(channel_layer.group_send)(
-            name_group,
-            {
-                "type": "send_message_chat",
-                "message": self.to_representation(message),
-            }
-        )
+        update_detail_chat_via_websocket(name_group, self.to_representation(message))
         return message
 
     def to_internal_value(self, data):
         logger.debug(data)
         images = data.getlist("images")
+        logger.debug(images)
         owner = data.get("owner")
 
         if images:
             images_urls = []
             for image in images:
+                logger.debug(image)
                 file_name = f"{owner}-{image.name}"
                 MinIOFileManager.upload_to_minio(image, f"{owner}-{image.name}")
                 images_urls.append(f"/media/{file_name}/")
@@ -118,7 +109,8 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = OrderedDict(
             {
-                "id": instance.owner.id,
+                "id": instance.id,
+                "user_id": instance.owner.id,
                 "avatar": instance.owner.avatar,
                 "username": instance.owner.username,
                 "text": instance.text,
