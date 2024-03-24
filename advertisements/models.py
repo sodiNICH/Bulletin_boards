@@ -2,8 +2,6 @@
 Model for advertisements
 """
 
-from datetime import timezone
-
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django.contrib.postgres.fields import ArrayField
@@ -110,6 +108,7 @@ class Advertisements(models.Model):
             )
         ],
     )
+    sold = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.title

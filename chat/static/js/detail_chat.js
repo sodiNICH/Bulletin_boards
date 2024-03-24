@@ -9,8 +9,24 @@ $(document).ready(function () {
         type: "GET",
         success: function (response) {
             console.log(response);
+            var advert = response.advert;
             var messages = response.messages
             var chatMessagesDiv = $("#all-messages");
+
+            var adDataDiv = $("#ad-data");
+            var adLink = $("<a>").attr("href", `/ad/${advert.id}/`);
+            var adImg = $("<img>").attr("src", advert.images).attr("id", "ad-images");
+            var adTitle = $("<h3>").text(advert.title);
+            adLink.append(adImg, adTitle);
+            adDataDiv.append(adLink);
+
+            if (advert.sold) {
+                adDataDiv.append("<h4>Уже продано</h4>");
+                $("#button-sold").remove();
+                $("#message-form").remove();
+            } else {
+                $("#button-sold").attr("onclick", `soldMarkAd(${advert.id})`)
+            };
 
             // Перебираем сообщения и добавляем их в чат
             if (messages !== null) {

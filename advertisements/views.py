@@ -101,3 +101,24 @@ class ListADCategory(APIView):
 class ListADSubcategory(APIView):
     def get(self, request, *args, **kwargs) -> Response:
         return list_ad_category_and_response("subcategory", request, *args, **kwargs)
+
+
+class SalesMarkView(APIView):
+    def post(self, request, *args, **kwargs):
+        ad_id = request.POST.get("id")
+        ad_object = get_object_or_404(Advertisements, pk=ad_id)
+        if not ad_object.sold:
+            ad_object.sold = True
+            ad_object.save()
+            return Response(
+                status=status.HTTP_200_OK,
+                data={
+                    "message": "The ad is marked as sold",
+                },
+            )
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                "message": "The ad has already been marked as sold",
+            },
+        )

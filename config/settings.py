@@ -71,7 +71,7 @@ LOGGING = {
             "handlers": ["applogfile", "console"],
             "level": "DEBUG",
         },
-        "search": {
+        "feedback": {
             "handlers": ["applogfile", "console"],
             "level": "DEBUG",
         },
@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "django_extensions",
     "minio_storage",
     "celery",
@@ -95,7 +96,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
+
     "notification",
+    "feedback",
     "chat",
     "advertisements",
     "User",

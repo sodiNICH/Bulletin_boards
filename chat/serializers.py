@@ -21,24 +21,31 @@ class ChatSerializer(serializers.ModelSerializer):
         model = Chat
         fields = "__all__"
 
-    def to_representation(self, instance):
-        logger.debug(self.context)
+    def get_chat_representation(self, instance):
         user = self.context["request"].user
         if instance in user.chats.all():
-            logger.debug(user.chats.all())
             advert_obj = instance.advertisement
             messages = instance.messages.all().order_by("created_at")
-            data = {
-                "id": instance.id,
-                "advert": {
-                    "id": advert_obj.id,
-                    "title": advert_obj.title,
-                    "images": advert_obj.images[0],
-                },
-                "messages": ChatMessageSerializer(messages, many=True).data
-                if messages
-                else None,
-            }
+            return OrderedDict(
+                {
+                    "id": instance.id,
+                    "advert": {
+                        "id": advert_obj.id,
+                        "title": advert_obj.title,
+                        "images": advert_obj.images[0],
+                        "sold": advert_obj.sold,
+                    },
+                    "messages": ChatMessageSerializer(messages, many=True).data
+                    if messages
+                    else None,
+                }
+            )
+        return None
+
+    def to_representation(self, instance):
+        logger.debug(self.context)
+        data = self.get_chat_representation(instance)
+        if data:
             logger.debug(data)
             return data
 
@@ -75,7 +82,10 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         if chat not in chats_companion.all():
             chats_companion.add(chat)
             name_group = f"chat_list_{companion.id}"
-            update_chat_list_via_websocket.delay(name_group, ChatSerializer(chat, context={"request": request}).data)
+            update_chat_list_via_websocket.delay(
+                name_group, ChatSerializer(chat, context={"request": request}).data
+            )
+
         companions.add(user)
         name_group = f"chat_{chat.id}"
         update_detail_chat_via_websocket(name_group, self.to_representation(message))

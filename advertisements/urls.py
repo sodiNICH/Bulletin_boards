@@ -50,6 +50,11 @@ urlpatterns = [
         include(router.urls),
     ),
     path(
+        "api/v1/sales-mark/",
+        views.SalesMarkView.as_view(),
+        name="api-sold-mark"
+    ),
+    path(
         "api/v1/category/<str:category>/",
         views.ListADCategory.as_view(),
         name="api-category",

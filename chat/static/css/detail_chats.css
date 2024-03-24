@@ -36,6 +36,11 @@
     color: #888;
 }
 
+#ad-images {
+    width: 500px;
+}
+
+
 #message-form {
     display: flex;
     justify-content: center;
